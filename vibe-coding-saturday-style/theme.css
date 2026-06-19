@@ -1,0 +1,83 @@
+/* VIBE CODING SATURDAY · 同款设计系统 (neo-brutalism)
+ * 直接 <link> / @import 这个文件，或把内容复制进你的全局 CSS。
+ * 然后给元素加 .card / .btn / .tag / .display / .kicker / .lift 类即可。
+ * 别忘了在 <head> 里引字体：
+ *   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Audiowide&display=swap" rel="stylesheet">
+ */
+
+:root {
+  /* —— 配色 —— */
+  --paper: #f5f1e8;   /* 暖米色，整页背景 */
+  --ink:   #0e0e0e;   /* 近黑，文字 + 所有边框 + 阴影 */
+  --coral: #DC5C5D;   /* 珊瑚红，主强调色 */
+  --mist:  #B6CEED;   /* 雾蓝 */
+  --pink:  #ffe9f8;   /* 浅粉 */
+  --sage:  #d7e7d4;   /* 浅绿 */
+  --mint:  #cde2da;   /* 青绿 */
+
+  /* —— 实心偏移阴影（无模糊，野兽派灵魂）—— */
+  --shadow:    4px 4px 0 0 var(--ink);
+  --shadow-lg: 6px 6px 0 0 var(--ink);
+  --shadow-sm: 2px 2px 0 0 var(--ink);
+
+  /* —— 字体 —— */
+  --font-display: "Anton", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  --font-kicker:  "Audiowide", "PingFang SC", sans-serif;
+  --font-body:    "Inter", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* —— 暖底 + 橄榄绿网格 + 绿→粉横向渐变 —— */
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-body);
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(90deg, rgba(144,153,26,.22) 1px, transparent 1px),
+    linear-gradient( 0deg, rgba(144,153,26,.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(206,228,219,.55), transparent 38%, rgba(255,76,178,.18));
+  background-size: 32px 32px, 32px 32px, 100% 100%;
+  background-attachment: scroll, scroll, fixed;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--mist); color: var(--ink); }
+
+/* —— 大标题 / 小标签字 —— */
+.display { font-family: var(--font-display); font-weight: 900; line-height: .95; letter-spacing: -.01em; }
+.kicker  { font-family: var(--font-kicker);  letter-spacing: .02em; text-transform: uppercase; }
+
+/* —— 卡片：白底 + 黑硬边 + 实心阴影 + 直角 —— */
+.card {
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  box-shadow: var(--shadow);
+  padding: 1.25rem 1.5rem;
+}
+.card-lg { box-shadow: var(--shadow-lg); }
+
+/* —— 标签 —— */
+.tag {
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .25rem .75rem;
+  border: 2px solid var(--ink); border-radius: 0;
+  box-shadow: var(--shadow-sm);
+  font-weight: 500; font-size: .85rem;
+}
+
+/* —— 按钮：带「按压感」交互 —— */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  padding: .75rem 1.25rem;
+  border: 3px solid var(--ink); border-radius: 0;
+  background: var(--coral); color: var(--ink);
+  font-weight: 600; cursor: pointer; user-select: none;
+  box-shadow: var(--shadow);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.btn:hover  { transform: translate(-2px,-2px); box-shadow: var(--shadow-lg); }
+.btn:active { transform: translate( 2px, 2px); box-shadow: var(--shadow-sm); }
+
+/* —— 任意元素想要 hover 抬起感，加这个类 —— */
+.lift { transition: transform .15s ease, box-shadow .15s ease; }
+.lift:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow-lg); }
