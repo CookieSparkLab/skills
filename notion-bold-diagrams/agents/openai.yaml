@@ -1,0 +1,4 @@
+interface:
+  display_name: "Notion 粗线条关系图"
+  short_description: "用 Pencil 或 SVG 生成彩色粗线条关系图"
+  default_prompt: "Use $notion-bold-diagrams to turn this content into a transparent-background visual diagram."

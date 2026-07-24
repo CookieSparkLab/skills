@@ -8,6 +8,7 @@
 | Skill | 一句话 | 适用 |
 |-------|--------|------|
 | [`vibe-coding-saturday-style`](./vibe-coding-saturday-style) | 一键把页面换成「VIBE CODING SATURDAY」活动官网同款 neo-brutalism 风格 | 任意 HTML / React / Vue 前端 |
+| [`notion-bold-diagrams`](./notion-bold-diagrams) | 把一段内容画成 Notion 风格的粗描边概念图 / 流程图 / 关系图（Pencil 或 SVG，透明背景） | 关系图 / 流程图 / 框架图 / PPT 配图 |
 
 ## 怎么用
 
