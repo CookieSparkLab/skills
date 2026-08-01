@@ -9,14 +9,16 @@
 |-------|--------|------|
 | [`vibe-coding-saturday-style`](./vibe-coding-saturday-style) | 一键把页面换成「VIBE CODING SATURDAY」活动官网同款 neo-brutalism 风格 | 任意 HTML / React / Vue 前端 |
 | [`notion-bold-diagrams`](./notion-bold-diagrams) | 把一段内容画成 Notion 风格的粗描边概念图 / 流程图 / 关系图（Pencil 或 SVG，透明背景） | 关系图 / 流程图 / 框架图 / PPT 配图 |
+| [`hyperframes-karaoke-captions`](./hyperframes-karaoke-captions) | 给 HyperFrames 竖版口播视频加荧光笔黄「逐词滑动高亮」卡拉OK字幕特效 | HyperFrames / HTML→MP4 竖版口播 |
 
 ## 怎么用
 
 ```bash
-# 1. 下载整个合集
-git clone https://github.com/CookieSparkLab/skills.git
+# 方式一：skills CLI（推荐）
+npx skills add CookieSparkLab/skills@hyperframes-karaoke-captions
 
-# 2. 把需要的 skill 拷进你自己的项目
+# 方式二：clone 整个合集，把需要的 skill 拷进项目
+git clone https://github.com/CookieSparkLab/skills.git
 cp -r skills/vibe-coding-saturday-style 你的项目/.claude/skills/
 ```
 
