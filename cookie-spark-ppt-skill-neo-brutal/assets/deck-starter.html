@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>演示 Deck · 起手包</title>
+
+<!--
+  ===================================================================
+  暖纸野兽派 · 演示 Deck 起手包
+  ===================================================================
+  怎么用：
+    1. 复制这个文件，改成你的名字，比如 my-deck.html
+    2. 只动 <body> 里的 <section class="slide">，一个 section 就是一页
+    3. 双击打开就能放映。→ / ↓ / 空格 前进，← / ↑ 后退，也可以直接点画面
+
+  自检：
+    网址后面加 ?debug=1，或者按键盘 D 键。
+    内容塞爆的那一页会被标红，左上角列出页号。做完一定要看一眼。
+
+  下面的 <style> 和 <script> 是引擎，不用改也不建议改。
+  ===================================================================
+-->
+
+<!-- 字体：正文/标题 HarmonyOS Sans SC（只拉 500/700/900 三个字重），角标 IBM Plex Mono -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/harmonyos-sans-sc-webfont-splitted@1.1.0/dist/Medium.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/harmonyos-sans-sc-webfont-splitted@1.1.0/dist/Bold.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/harmonyos-sans-sc-webfont-splitted@1.1.0/dist/Black.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&display=swap">
+
+<style>
+/* ==================================================================
+   1 · 设计 token
+   改配色只改这里。别在页面里写死颜色。
+   ================================================================== */
+:root {
+  --paper:   #f5f1e8;  /* 纸底，别用纯白 */
+  --paper-2: #ffffff;  /* 卡面 */
+  --ink:     #0e0e0e;  /* 文字 + 所有边框 + 所有阴影 */
+  --muted:   #5a5a55;  /* 次要灰字 */
+  --coral:   #DC5C5D;  /* 主强调色，克制用 */
+  --blue:    #B6CEED;
+  --sage:    #d7e7d4;
+  --mint:    #cde2da;
+  --pink:    #ffe9f8;
+
+  /* 实心偏移阴影，永远纯黑、往右下、无 blur。这是野兽派的灵魂 */
+  --sh-sm: 2px 2px 0 0 var(--ink);
+  --sh:    4px 4px 0 0 var(--ink);
+  --sh-lg: 6px 6px 0 0 var(--ink);
+
+  --font: "HarmonyOS Sans SC", "PingFang SC", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+
+  /* 8px 基准间距刻度 */
+  --s1: 8px; --s2: 16px; --s3: 24px; --s4: 32px; --s5: 48px; --s6: 64px;
+}
+
+/* ==================================================================
+   2 · 放映舞台
+   每页固定 1920×1080，再整体缩放去适配窗口。
+   所以你排版时脑子里的画布永远是 1920×1080，跟窗口大小无关。
+   ================================================================== */
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+
+.deck-root {
+  position: fixed; inset: 0;
+  background: var(--ink);
+  font-family: var(--font);
+}
+.deck-scroll {
+  height: 100%;
+  overflow-y: auto; overflow-x: hidden;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+}
+.slide {
+  width: 100vw; height: 100vh; height: 100dvh;
+  scroll-snap-align: start;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.slide-inner {
+  width: 1920px; height: 1080px; flex-shrink: 0;
+  position: relative; overflow: hidden;
+  transform-origin: center center;
+  display: flex; flex-direction: column;
+  /* 上 112 / 左右 90 / 下 94。下边这 94px 是安全区，内容绝不能压上去 */
+  padding: 112px 90px 94px;
+  color: var(--ink);
+  background-color: var(--paper);
+  /* 32px 橄榄绿网格 */
+  background-image:
+    linear-gradient(90deg, rgba(144,153,26,.22) 1px, transparent 1px),
+    linear-gradient(0deg,  rgba(144,153,26,.22) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+/* 封面 / 过场 / 大字页用：整页居中。内容页不要用，内容页一律顶对齐 */
+.slide-inner.center { align-items: center; justify-content: center; text-align: center; }
+
+/* 手机端：不吸附，按宽度缩放逐页堆叠 */
+.deck-root.is-mobile .deck-scroll { scroll-snap-type: none; }
+.deck-root.is-mobile .slide {
+  height: auto; display: block; overflow: hidden;
+  margin: 0 0 24px; box-shadow: 0 8px 24px rgba(0,0,0,.2);
+}
+.deck-root.is-mobile .slide-inner { transform-origin: top left; position: absolute; top: 0; left: 0; }
+
+/* ==================================================================
+   3 · 字号：只有这 9 个角色，绝不新增字号
+   要做层级？用颜色（muted）和字重（500/700/900），不要造新字号。
+   ================================================================== */
+.t-display    { font-size: 212px; font-weight: 900; line-height: 1;    letter-spacing: -.02em; margin: 0; }
+.t-title      { font-size: 168px; font-weight: 900; line-height: 1;    letter-spacing: -.015em; margin: 0; }
+.t-section    { font-size: 96px;  font-weight: 900; line-height: 1.05; letter-spacing: -.01em; margin: 0; }
+.t-cardtitle  { font-size: 72px;  font-weight: 900; line-height: 1.1;  letter-spacing: -.01em; margin: 0; }
+.t-subhead-lg { font-size: 56px;  font-weight: 500; line-height: 1.1;  color: var(--muted); margin: 0; }
+.t-subhead-md { font-size: 44px;  font-weight: 900; line-height: 1.1;  letter-spacing: -.02em; margin: 0; }
+.t-kicker     { font-size: 44px;  font-weight: 500; line-height: 1.2;  color: var(--muted); margin: 0; }
+.t-body       { font-size: 32px;  font-weight: 500; line-height: 1.5;  margin: 0; }
+.t-body-sm    { font-size: 28px;  font-weight: 500; line-height: 1.5;  margin: 0; }
+
+/* 中文多行时行高要放到 1.3–1.35，1.05 只给单行大标题 */
+.wrap-cn { line-height: 1.32; }
+/* 标题里想强调一个词，用 <em>。不是斜体，是变色 */
+em { font-style: normal; color: var(--coral); }
+strong { font-weight: 700; }
+
+/* 说明 / 次要信息：同字号 + 灰 + 左竖线 + 缩进。靠结构拉层级，不靠新字号 */
+.note {
+  font-size: 26px; font-weight: 500; line-height: 1.45;
+  color: var(--muted);
+  border-left: 3px solid rgba(90,90,85,.45);
+  padding-left: 20px;
+  margin: 0;
+}
+
+/* ==================================================================
+   4 · 组件：卡片 / 胶囊标签 / 列表
+   ================================================================== */
+.card {
+  border: 3px solid var(--ink);
+  border-radius: 0;              /* 一律直角，任何圆角都是违规 */
+  padding: 48px 52px;
+  box-shadow: var(--sh-lg);
+  background: var(--paper-2);
+  display: flex; flex-direction: column;   /* 卡片内部永远竖着排 */
+}
+.card.h { flex-direction: row; align-items: center; gap: 24px; }  /* 少数横排卡片用 */
+.card.stretch { flex: 1; }                                        /* 撑满一行的剩余高度 */
+.card.coral { background: var(--coral); color: #fff; }   /* coral 上文字一律白 */
+.card.blue  { background: var(--blue); }
+.card.sage  { background: var(--sage); }
+.card.mint  { background: var(--mint); }
+.card.pink  { background: var(--pink); }
+.card.tight { padding: 28px 36px; }
+/* coral 卡里放浅底标签时，标签文字要手动设回黑 */
+.card.coral .pill:not(.coral) { color: var(--ink); }
+/* 规范第 1 条：coral 上文字一律白色。
+   .note / .t-subhead-lg / .t-kicker 自己写死了灰色，在 coral 上会糊成一片，这里救回来 */
+.card.coral .note,
+.card.coral .t-subhead-lg,
+.card.coral .t-kicker { color: rgba(255,255,255,.85); }
+.card.coral .note { border-left-color: rgba(255,255,255,.5); }
+
+.pill {
+  display: inline-block;
+  border: 2.5px solid var(--ink); border-radius: 0;
+  padding: 10px 20px;
+  font-family: var(--mono); font-size: 22px; font-weight: 700; letter-spacing: .08em;
+  box-shadow: var(--sh-sm);
+  background: var(--paper-2);
+}
+.pill.pink { background: var(--pink); }
+.pill.blue { background: var(--blue); }
+.pill.sage { background: var(--sage); }
+.pill.coral { background: var(--coral); color: #fff; }
+
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s2); }
+.list > li { font-size: 32px; font-weight: 500; line-height: 1.5; }
+.list > li::before { content: "· "; }
+
+/* 布局小工具 */
+.row  { display: flex; gap: 36px; }
+.col  { display: flex; flex-direction: column; }
+.grow { flex: 1; }
+/* .step 只是动画包装，不该影响布局：在一行里它要能把卡片撑开 */
+.row > .step { display: flex; }
+.mt-1{margin-top:var(--s1)} .mt-2{margin-top:var(--s2)} .mt-3{margin-top:var(--s3)}
+.mt-4{margin-top:var(--s4)} .mt-5{margin-top:var(--s5)} .mt-6{margin-top:var(--s6)}
+.mb-1{margin-bottom:var(--s1)} .mb-2{margin-bottom:var(--s2)} .mb-3{margin-bottom:var(--s3)}
+.mb-4{margin-bottom:var(--s4)} .mb-5{margin-bottom:var(--s5)} .mb-6{margin-bottom:var(--s6)}
+
+/* 右上角色卡圆点（封面用） */
+.swatches { position: absolute; right: 80px; top: 60px; display: flex; gap: 16px; }
+.swatches i { width: 56px; height: 56px; border: 3px solid var(--ink); display: block; }
+
+/* ==================================================================
+   5 · 动画：这是这套 deck 最重要的部分
+   .reveal —— 翻到这页就自动淡入。给标题、导语用。
+   .step   —— 按一下才出现一个。给卡片、结论句用。
+   规矩：一页里多张卡片，每张包一个 .step 逐个点亮，
+        底部那句结论句是最后一个 .step。全部出完才翻页。
+   ================================================================== */
+.reveal {
+  opacity: 0; transform: translateY(30px);
+  transition: opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1);
+}
+.slide.is-visible .reveal { opacity: 1; transform: translateY(0); }
+.reveal.d1{transition-delay:.1s} .reveal.d2{transition-delay:.2s} .reveal.d3{transition-delay:.3s}
+.reveal.d4{transition-delay:.4s} .reveal.d5{transition-delay:.5s}
+
+.step {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity .5s cubic-bezier(.16,1,.3,1), transform .5s cubic-bezier(.16,1,.3,1);
+}
+.step.is-step-visible { opacity: 1; transform: translateY(0); }
+
+/* ==================================================================
+   6 · debug 模式（?debug=1 或按 D）
+   ================================================================== */
+.is-debug .slide-inner::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 94px;
+  border-bottom: 2px dashed rgba(220,92,93,.55); pointer-events: none;
+}
+.is-debug .slide-inner[data-overflow] { outline: 8px solid var(--coral); outline-offset: -8px; }
+.is-debug [data-overflow-el] { outline: 4px solid var(--coral); }
+.is-debug .slide-inner::before {
+  content: attr(data-page); position: absolute; right: 90px; bottom: 36px;
+  font-family: var(--mono); font-size: 20px; color: var(--muted);
+}
+#debug-panel {
+  position: fixed; left: 16px; bottom: 16px; z-index: 999;
+  font-family: var(--mono); font-size: 13px; line-height: 1.6;
+  background: var(--paper-2); color: var(--ink);
+  border: 3px solid var(--ink); box-shadow: var(--sh);
+  padding: 12px 16px; max-width: 340px; display: none; white-space: pre-wrap;
+}
+.is-debug #debug-panel { display: block; }
+</style>
+</head>
+
+<body>
+<div class="deck-root" id="deck">
+  <div id="debug-panel"></div>
+  <div class="deck-scroll">
+
+    <!-- =============================================================
+         页 1 · 封面
+         版式：整页居中。标签 + 大标题。
+         ============================================================= -->
+    <section class="slide">
+      <div class="slide-inner center">
+        <div class="swatches">
+          <i style="background:var(--coral)"></i>
+          <i style="background:var(--blue)"></i>
+          <i style="background:var(--sage)"></i>
+          <i style="background:var(--mint)"></i>
+        </div>
+
+        <div class="reveal d1 mb-5">
+          <span class="pill blue" style="font-family:var(--font);font-size:44px;font-weight:700;letter-spacing:0;border-width:4px;padding:8px 24px;box-shadow:var(--sh)">
+            你的系列名 · 副标题位
+          </span>
+        </div>
+        <h1 class="t-display reveal d2" style="font-size:176px;line-height:1.08">
+          这里写标题<br>可以换行
+        </h1>
+      </div>
+    </section>
+
+    <!-- =============================================================
+         页 2 · 标题 + 三张卡片（最常用的内容页）
+         注意动画：标题用 reveal 随页出现，三张卡片各包一个 step 逐个点亮，
+         最后底部那句话也是一个 step，排在卡片之后。
+         容量：三卡并排，每张宽约 540，卡内正文别超过 4 行。
+         ============================================================= -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="reveal d1">
+          <span class="pill pink mb-3">01 · SECTION</span>
+          <h2 class="t-section mb-5">这一页在讲<em>什么</em>？</h2>
+        </div>
+
+        <div class="row grow">
+          <div class="step grow"><div class="card stretch">
+            <h3 class="t-subhead-md mb-2">第一张卡</h3>
+            <p class="t-body wrap-cn">一句话说清这张卡的主要意思，不要写成一段话。</p>
+            <p class="note mt-2">补充说明放这里，灰字加左竖线，和上面的主描述拉开层级。</p>
+          </div></div>
+
+          <div class="step grow"><div class="card blue stretch">
+            <h3 class="t-subhead-md mb-2">第二张卡</h3>
+            <p class="t-body wrap-cn">换个底色就是换个语气，六种底色随便挑。</p>
+            <p class="note mt-2">标题和说明之间至少留 8 到 10 像素，别贴一起。</p>
+          </div></div>
+
+          <div class="step grow"><div class="card coral stretch">
+            <h3 class="t-subhead-md mb-2">第三张卡</h3>
+            <p class="t-body wrap-cn">coral 是强调色，上面的文字一律白色，克制着用。</p>
+          </div></div>
+        </div>
+
+        <!-- 结论句：一定是最后一个 step -->
+        <div class="step mt-5">
+          <p class="t-subhead-md" style="text-align:center">所以，这一页想让观众记住的就是这一句。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =============================================================
+         页 3 · 双栏对比
+         容量：单栏最多 6 到 8 条，每条一行。超了就删，不要缩字号。
+         ============================================================= -->
+    <section class="slide">
+      <div class="slide-inner">
+        <h2 class="t-section reveal d1 mb-5">左边和右边，怎么<em>分工</em>？</h2>
+
+        <div class="row grow">
+          <div class="step grow"><div class="card stretch">
+            <p class="t-subhead-lg mb-4" style="text-align:center;color:var(--ink);border-bottom:1.5px solid rgba(14,14,14,.25);padding-bottom:24px">左边负责</p>
+            <ul class="list">
+              <li>第一条职责，一行写完</li>
+              <li>第二条职责</li>
+              <li>第三条职责</li>
+              <li>第四条职责</li>
+            </ul>
+          </div></div>
+
+          <div class="step grow"><div class="card blue stretch">
+            <p class="t-subhead-lg mb-4" style="text-align:center;color:var(--ink);border-bottom:1.5px solid rgba(14,14,14,.25);padding-bottom:24px">右边负责</p>
+            <ul class="list">
+              <li><strong>要加粗的重点条目</strong></li>
+              <li>第二条职责</li>
+              <li>第三条职责</li>
+              <li>第四条职责</li>
+              <li>第五条职责</li>
+            </ul>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =============================================================
+         页 4 · 编号列表页
+         编号和标题要成一组：小间距、编号约为标题的 1.2 到 1.3 倍。
+         别搞「大数字 + 一大片留白 + 小字」。
+         ============================================================= -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="reveal d1">
+          <span class="pill sage mb-3">02 · CHECKLIST</span>
+          <h2 class="t-section mb-5">三个问题，问完就知道要不要做</h2>
+        </div>
+
+        <div class="col grow" style="gap:16px">
+          <div class="step"><div class="card h tight">
+            <span class="pill">Q1</span>
+            <h3 class="t-subhead-md">这件事你会反复做吗？</h3>
+          </div></div>
+          <div class="step"><div class="card h tight">
+            <span class="pill">Q2</span>
+            <h3 class="t-subhead-md">你对结果的一致性有要求吗？</h3>
+          </div></div>
+          <div class="step"><div class="card h tight">
+            <span class="pill">Q3</span>
+            <h3 class="t-subhead-md">做的流程基本稳定吗？</h3>
+          </div></div>
+          <div class="step mt-2"><div class="card sage h tight">
+            <span class="t-cardtitle" style="font-size:40px;line-height:1">✓</span>
+            <h3 class="t-subhead-md">三个都是，那就值得做</h3>
+          </div></div>
+        </div>
+
+        <div class="step">
+          <p class="note mt-4" style="text-align:center;border:0;padding:0">「诶我好像每次都要重新弄一遍」</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =============================================================
+         页 5 · 大字过场 / 休息页
+         版式：整页居中。这是少数可以垂直居中的页型。
+         ============================================================= -->
+    <section class="slide">
+      <div class="slide-inner center">
+        <div class="reveal d1 mb-4"><span class="pill pink">BREAK · 10 MIN</span></div>
+        <h1 class="t-title reveal d2 mb-3" style="font-size:132px">动手环节</h1>
+        <p class="t-subhead-lg reveal d3 mb-6">先做起来，做完再回来</p>
+
+        <div class="row" style="flex-wrap:wrap;justify-content:center;gap:30px;max-width:1700px">
+          <div class="step"><div class="card tight" style="width:460px;text-align:left">
+            <h3 class="t-subhead-md mb-2">1. 第一步</h3>
+            <p class="t-body-sm wrap-cn">这一步要做什么，一句话说清</p>
+          </div></div>
+          <div class="step"><div class="card blue tight" style="width:460px;text-align:left">
+            <h3 class="t-subhead-md mb-2">2. 第二步</h3>
+            <p class="t-body-sm wrap-cn">这一步要做什么，一句话说清</p>
+          </div></div>
+          <div class="step"><div class="card sage tight" style="width:460px;text-align:left">
+            <h3 class="t-subhead-md mb-2">3. 第三步</h3>
+            <p class="t-body-sm wrap-cn">这一步要做什么，一句话说清</p>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+/* ==================================================================
+   放映引擎。不用改。
+   ================================================================== */
+(function () {
+  var REF_W = 1920, REF_H = 1080;
+  var root   = document.getElementById('deck');
+  var scroll = root.querySelector('.deck-scroll');
+  var slides = Array.prototype.slice.call(root.querySelectorAll('.slide'));
+  var inners = Array.prototype.slice.call(root.querySelectorAll('.slide-inner'));
+  var panel  = document.getElementById('debug-panel');
+  var current = 0;
+
+  inners.forEach(function (el, i) { el.setAttribute('data-page', 'p' + (i + 1)); });
+
+  /* ---- 缩放：1920×1080 等比塞进窗口 ---- */
+  var isMobile = /iPhone|iPod|Android.*Mobile|BlackBerry|IEMobile|Opera Mini|webOS/i.test(navigator.userAgent);
+  if (isMobile) root.classList.add('is-mobile');
+
+  function resize() {
+    if (isMobile) {
+      var sm = window.innerWidth / REF_W;
+      inners.forEach(function (el) { el.style.transform = 'scale(' + sm + ')'; });
+      slides.forEach(function (el) { el.style.height = (REF_H * sm) + 'px'; });
+      return;
+    }
+    var s = Math.min(window.innerWidth / REF_W, window.innerHeight / REF_H);
+    inners.forEach(function (el) { el.style.transform = 'scale(' + s + ')'; });
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', resize);
+
+  /* ---- 当前页跟踪 + 进页淡入 + 地址栏同步 ---- */
+  var obs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      e.target.classList.add('is-visible');
+      current = slides.indexOf(e.target);
+      var h = '#p' + (current + 1);
+      if (location.hash !== h) history.replaceState(null, '', h);
+    });
+  }, { threshold: 0.5, root: scroll });
+  slides.forEach(function (s) { obs.observe(s); });
+
+  /* 刷新后停在原来那页 */
+  var m = (location.hash || '').match(/^#p(\d+)$/);
+  if (m) {
+    var idx = Number(m[1]) - 1;
+    if (idx > 0 && idx < slides.length) {
+      requestAnimationFrame(function () { slides[idx].scrollIntoView(); current = idx; });
+    }
+  }
+
+  /* ---- 推进：先点亮本页所有 step，出完了才翻页 ---- */
+  function next() {
+    var s = slides[current];
+    if (s) {
+      var pending = s.querySelector('.step:not(.is-step-visible)');
+      if (pending) { pending.classList.add('is-step-visible'); return; }
+    }
+    if (current + 1 < slides.length) slides[current + 1].scrollIntoView({ behavior: 'smooth' });
+  }
+  function prev() {
+    var s = slides[current];
+    if (s) {
+      var shown = s.querySelectorAll('.step.is-step-visible');
+      if (shown.length) { shown[shown.length - 1].classList.remove('is-step-visible'); return; }
+    }
+    if (current > 0) slides[current - 1].scrollIntoView({ behavior: 'smooth' });
+  }
+
+  window.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+    else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+    else if (e.key === 'd' || e.key === 'D') { toggleDebug(); }
+  });
+
+  /* 点画面也能前进，方便用翻页笔。点链接除外 */
+  scroll.addEventListener('click', function (e) {
+    if (e.target.closest('a')) return;
+    next();
+  });
+
+  /* ==================================================================
+     debug：找出内容塞爆的页
+     每页画布高 1080，减掉上下 padding，真正能放内容的是 874px。
+     超了就标红，并在左上角列出页号。
+     ================================================================== */
+  function checkOverflow() {
+    var bad = [];
+    root.querySelectorAll('[data-overflow-el]').forEach(function (el) { el.removeAttribute('data-overflow-el'); });
+    inners.forEach(function (inner, i) {
+      inner.removeAttribute('data-overflow');
+      var over = inner.scrollHeight - inner.clientHeight;
+      var inners_bad = over > 2;
+      /* 卡片内部被挤爆的情况：flex 会压缩容器，外层看不出来，得逐个卡片查 */
+      var cards = [];
+      inner.querySelectorAll('.card').forEach(function (c) {
+        if (c.scrollHeight - c.clientHeight > 2) { c.setAttribute('data-overflow-el', ''); cards.push(c); }
+      });
+      if (inners_bad || cards.length) {
+        inner.setAttribute('data-overflow', '');
+        bad.push('p' + (i + 1) + (inners_bad ? ' 整页超出 ' + over + 'px' : '') + (cards.length ? ' / ' + cards.length + ' 张卡片内容被挤爆' : ''));
+      }
+    });
+    panel.textContent = bad.length
+      ? 'DEBUG · 有 ' + bad.length + ' 页放不下\n\n' + bad.join('\n') + '\n\n虚线 = 底部安全线\n删内容，不要缩字号'
+      : 'DEBUG · 共 ' + inners.length + ' 页，全部放得下 ✓\n\n虚线 = 底部安全线\n按 D 关闭';
+  }
+  function toggleDebug() {
+    root.classList.toggle('is-debug');
+    if (root.classList.contains('is-debug')) checkOverflow();
+  }
+  if (/[?&]debug=1/.test(location.search)) {
+    /* 等字体加载完再量，不然量到的是回退字体的高度 */
+    (document.fonts ? document.fonts.ready : Promise.resolve()).then(function () {
+      setTimeout(toggleDebug, 100);
+    });
+  }
+})();
+</script>
+</body>
+</html>
