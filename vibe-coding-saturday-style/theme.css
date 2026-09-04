@@ -1,36 +1,85 @@
-/* VIBE CODING SATURDAY · 同款设计系统 (neo-brutalism)
- * 直接 <link> / @import 这个文件，或把内容复制进你的全局 CSS。
- * 然后给元素加 .card / .btn / .tag / .display / .kicker / .lift 类即可。
- * 别忘了在 <head> 里引字体：
- *   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Audiowide&display=swap" rel="stylesheet">
- */
+/* ============================================================================
+ * VIBE CODING SATURDAY · 同款设计系统  v2  (neo-brutalism)
+ * 暖纸底 + 3px 黑硬边 + 实心偏移阴影（无模糊）+ 直角
+ * ----------------------------------------------------------------------------
+ * 用法：<link> 或 @import 本文件，然后给元素加类：
+ *   排版  .display / .display-tight / .display-en / .headline / .subhead / .body / .label / .note
+ *   组件  .card / .card-lg / .btn / .btn-secondary / .btn-ghost / .btn-sm / .tag
+ *   配色  .tone-coral / .tone-mist / .tone-pink / .tone-sage / .tone-mint / .tone-ok / .tone-warn / .tone-err
+ *   交互  .lift
+ *   改造  .vcs-takeover（抹掉已有页面的圆角）
+ * ----------------------------------------------------------------------------
+ * <head> 里先引字体：
+ *   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ *   <link href="https://cdn.jsdelivr.net/npm/harmonyos-sans-sc-webfont-splitted@1.1.0/dist/index.css" rel="stylesheet">
+ *   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+ *   <!-- 可选，只有纯英文大标题要 Anton 的冲击力时才加 -->
+ *   <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+ * ========================================================================== */
 
 :root {
-  /* —— 配色 —— */
-  --paper: #f5f1e8;   /* 暖米色，整页背景 */
-  --ink:   #0e0e0e;   /* 近黑，文字 + 所有边框 + 阴影 */
-  --coral: #DC5C5D;   /* 珊瑚红，主强调色 */
-  --mist:  #B6CEED;   /* 雾蓝 */
-  --pink:  #ffe9f8;   /* 浅粉 */
-  --sage:  #d7e7d4;   /* 浅绿 */
-  --mint:  #cde2da;   /* 青绿 */
+  /* ---------- 底色 ---------- */
+  --paper:   #f5f1e8;   /* 暖米色，整页背景。别用纯白 */
+  --surface: #ffffff;   /* 卡面 */
+  --ink:     #0e0e0e;   /* 近黑：文字 + 所有边框 + 所有阴影 */
+  --muted:   #5a5a55;   /* 次要文字。别拿纯黑当说明文字，页面会一片死黑 */
 
-  /* —— 实心偏移阴影（无模糊，野兽派灵魂）—— */
+  /* ---------- 强调色 ---------- */
+  /* 主强调色：主按钮 / 最重要的标签。品牌原色，配白字。
+   * 白字对比度 3.65:1 —— 过 WCAG AA 的「大字号」档（≥24px，或 ≥18.7px 加粗），
+   * 不过正文小字档。所以 coral 只用来托按钮和大标签，别拿它当小字的底色。 */
+  --coral: #DC5C5D;
+  --mist:  #B6CEED;     /* 雾蓝 */
+  --pink:  #ffe9f8;     /* 浅粉 */
+  --sage:  #d7e7d4;     /* 浅绿 */
+  --mint:  #a9cfc4;     /* 青绿（v2 已与 sage 拉开距离，原值 #cde2da 和 sage 肉眼分不出） */
+
+  /* ---------- 语义色 ---------- */
+  /* 全部是浅底 + 黑字，和 --coral 拉开：主按钮和报错提示绝不能长一样 */
+  --ok:   #c7e3ad;
+  --warn: #ffd9a8;
+  --err:  #ffc2be;
+
+  /* ---------- 边框 / 形状 / 阴影 ---------- */
+  --bw:      3px;       /* 标准硬边 */
+  --bw-thin: 2px;       /* 小元素（tag / 小按钮） */
+  --radius:  0;         /* 永远是 0。这套风格没有圆角 */
+  --line: rgba(14,14,14,.14);  /* 表格 / 列表内部的细分隔线。外框仍然是 3px 实黑 */
+  --shadow-sm: 2px 2px 0 0 var(--ink);
   --shadow:    4px 4px 0 0 var(--ink);
   --shadow-lg: 6px 6px 0 0 var(--ink);
-  --shadow-sm: 2px 2px 0 0 var(--ink);
 
-  /* —— 字体 —— */
-  --font-display: "Anton", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
-  --font-kicker:  "Audiowide", "PingFang SC", sans-serif;
-  --font-body:    "Inter", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  /* ---------- 间距刻度（8px 基准） ---------- */
+  --sp-1: 8px;  --sp-2: 16px; --sp-3: 24px;
+  --sp-4: 32px; --sp-6: 48px; --sp-8: 64px;
+
+  /* ---------- 字体 ---------- */
+  /* 中西文同一家族。别中文一套、拉丁一套 —— 那是 v1 最大的坑 */
+  --font-display: "HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --font-body:    "HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --font-mono:    "IBM Plex Mono","JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --font-en:      "Anton",var(--font-display);   /* 只给纯英文大标题 */
+  --font-kicker:  var(--font-mono);              /* v1 兼容别名 */
+
+  /* ---------- 字号角色（只有这 5 个 + note，别再新增） ---------- */
+  --fs-display:  clamp(38px, 6.5vw, 72px);   /* 封面大标题 */
+  --fs-headline: clamp(26px, 3.6vw, 40px);   /* 每屏大标题 */
+  --fs-subhead:  20px;                       /* 卡片标题 / 副标题 */
+  --fs-body:     16px;                       /* 正文 */
+  --fs-label:    13px;                       /* 角标 / 编号 / tag */
 }
 
-/* —— 暖底 + 橄榄绿网格 + 绿→粉横向渐变 —— */
+/* ---------- 暖底 + 橄榄绿网格 + 绿→粉横向渐变 ----------
+ * 关于「不要渐变」这条规则的准确口径：
+ *   禁的是【按钮 / 卡片 / 标签】上的渐变 —— 那是廉价感的来源。
+ *   页面底纹这层绿→粉的横向渐变是例外，它是纸张感的一部分，属于品牌资产。
+ * 小屏会关掉 background-attachment:fixed（见文件末尾的 @media）。 */
 body {
   margin: 0;
   color: var(--ink);
   font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: 1.75;
   background-color: var(--paper);
   background-image:
     linear-gradient(90deg, rgba(144,153,26,.22) 1px, transparent 1px),
@@ -42,42 +91,303 @@ body {
 }
 ::selection { background: var(--mist); color: var(--ink); }
 
-/* —— 大标题 / 小标签字 —— */
-.display { font-family: var(--font-display); font-weight: 900; line-height: .95; letter-spacing: -.01em; }
-.kicker  { font-family: var(--font-kicker);  letter-spacing: .02em; text-transform: uppercase; }
+/* ============================ 排版 ============================ */
+/* 中文换行安全的行高。1.3 是默认值，不是可选项 */
+.display  { font-family: var(--font-display); font-weight: 900; font-size: var(--fs-display);  line-height: 1.3; letter-spacing: -.01em; }
+.headline { font-family: var(--font-display); font-weight: 900; font-size: var(--fs-headline); line-height: 1.3; letter-spacing: -.01em; }
+.subhead  { font-weight: 700; font-size: var(--fs-subhead); line-height: 1.4; }
+.body     { font-weight: 400; font-size: var(--fs-body); line-height: 1.75; max-width: 34em; }
 
-/* —— 卡片：白底 + 黑硬边 + 实心阴影 + 直角 —— */
+/* 只有「单行、不会换行」的大标题才配用紧凑行高 */
+.display-tight { line-height: 1.05; }
+
+/* 纯英文大标题想要 Anton 的冲击力时用。Anton 只有 400 字重，别写 900（会被合成假粗） */
+.display-en { font-family: var(--font-en); font-weight: 400; line-height: .95; letter-spacing: 0; text-transform: uppercase; }
+
+/* 角标 / 编号 / kicker：等宽体。等宽的工程感和野兽派天然合拍，中文 fallback 后也协调 */
+.label, .kicker { font-family: var(--font-mono); font-weight: 700; font-size: var(--fs-label);
+                  letter-spacing: .08em; text-transform: uppercase; line-height: 1.3; }
+
+/* 次要说明：和正文同字号，靠「灰度 + 左竖线」拉开层级，不新增字号 */
+.note { border-left: var(--bw) solid var(--muted); padding-left: var(--sp-2);
+        color: var(--muted); line-height: 1.7; }
+
+/* ============================ 卡片 ============================ */
 .card {
-  background: #fff;
-  border: 3px solid var(--ink);
-  border-radius: 0;
+  background: var(--surface);
+  color: var(--ink);          /* 必须显式写。只写 background 不写 color，
+                                 这张卡放进 .tone-coral 里就会继承白字 → 白底白字 */
+  border: var(--bw) solid var(--ink);
+  border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 1.25rem 1.5rem;
+  padding: var(--sp-3);
 }
 .card-lg { box-shadow: var(--shadow-lg); }
 
-/* —— 标签 —— */
+/* ============================ 标签 ============================ */
 .tag {
-  display: inline-flex; align-items: center; gap: .5rem;
-  padding: .25rem .75rem;
-  border: 2px solid var(--ink); border-radius: 0;
+  display: inline-flex; align-items: center; gap: var(--sp-1);
+  padding: 4px 12px;
+  background: var(--surface);            /* v1 忘了给底色，网格线会穿过标签内部 */
+  color: var(--ink);                     /* 同上：自带底色的组件必须自带文字色 */
+  border: var(--bw-thin) solid var(--ink);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
-  font-weight: 500; font-size: .85rem;
+  font-weight: 500; font-size: var(--fs-label); line-height: 1.5;
 }
 
-/* —— 按钮：带「按压感」交互 —— */
+/* ============================ 按钮 ============================ */
+/* 交互是「按压感」：hover 往左上抬、按下往右下沉，像按一块实体牌子 */
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
-  padding: .75rem 1.25rem;
-  border: 3px solid var(--ink); border-radius: 0;
-  background: var(--coral); color: var(--ink);
-  font-weight: 600; cursor: pointer; user-select: none;
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-1);
+  padding: 12px 20px;
+  border: var(--bw) solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--coral); color: #fff;   /* 白字是绑定在 coral 底上的。
+     想要别的底色，用 .btn-secondary / .btn-quiet / .btn-ghost / .tone-*，
+     千万别用 inline style 只改 background —— 文字还是白的，直接变成白底白字 */
+  font-family: inherit; font-weight: 700; font-size: var(--fs-body);
+  cursor: pointer; user-select: none;
   box-shadow: var(--shadow);
   transition: transform .15s ease, box-shadow .15s ease;
 }
 .btn:hover  { transform: translate(-2px,-2px); box-shadow: var(--shadow-lg); }
 .btn:active { transform: translate( 2px, 2px); box-shadow: var(--shadow-sm); }
+.btn:disabled, .btn[aria-disabled="true"] {
+  opacity: .45; cursor: not-allowed; transform: none; box-shadow: var(--shadow-sm);
+}
 
-/* —— 任意元素想要 hover 抬起感，加这个类 —— */
+.btn-secondary { background: var(--surface); color: var(--ink); }
+.btn-ghost     { background: transparent; color: var(--ink); border-color: transparent; box-shadow: none; }
+.btn-ghost:hover { background: var(--surface); border-color: var(--ink); box-shadow: var(--shadow-sm); transform: none; }
+.btn-sm { padding: 6px 12px; font-size: var(--fs-label); border-width: var(--bw-thin); box-shadow: var(--shadow-sm); }
+
+/* ============================ 配色修饰类 ============================ */
+/* 加在 .card / .tag / 任意块上换底色。别再手写 inline style —— 那是 v1 输出不一致的主因 */
+.tone-paper { background: var(--paper);   color: var(--ink); }
+.tone-white { background: var(--surface); color: var(--ink); }
+.tone-coral { background: var(--coral);   color: #fff; }
+.tone-mist  { background: var(--mist);    color: var(--ink); }
+.tone-pink  { background: var(--pink);    color: var(--ink); }
+.tone-sage  { background: var(--sage);    color: var(--ink); }
+.tone-mint  { background: var(--mint);    color: var(--ink); }
+.tone-ok    { background: var(--ok);      color: var(--ink); }
+.tone-warn  { background: var(--warn);    color: var(--ink); }
+.tone-err   { background: var(--err);     color: var(--ink); }
+
+/* 深色卡上的按钮要换白底，否则和卡片糊在一起 */
+.tone-coral .btn { background: var(--surface); color: var(--ink); }
+.tone-coral .note { border-left-color: #fff; color: #fff; }
+
+/* ============================ 高密度界面 ============================ */
+/* 后台 / 表格 / 工具栏这类密集界面，4px 硬阴影会糊成一片、3px 边会把页面压得又黑又挤。
+ * 给容器加 .dense，作用域内的边框和阴影整体降一档 —— 组件不用换，改的是 token。 */
+.dense {
+  --bw: 2px;
+  --bw-thin: 2px;
+  --shadow-sm: 1px 1px 0 0 var(--ink);
+  --shadow:    2px 2px 0 0 var(--ink);
+  --shadow-lg: 3px 3px 0 0 var(--ink);
+}
+
+/* 无阴影卡：嵌套在别的卡里、或者密集网格里用，只留边框 */
+.card-flat { box-shadow: none; }
+
+/* 安静按钮：表格行内、工具栏里的次要操作。
+ * 密集界面里成排的实心阴影按钮非常吵，这个只在 hover 时才浮起来 */
+.btn-quiet {
+  background: var(--surface); color: var(--ink);
+  border-width: var(--bw-thin); box-shadow: none;
+}
+.btn-quiet:hover { box-shadow: var(--shadow-sm); transform: none; }
+.btn-quiet:active { box-shadow: none; transform: translate(1px,1px); }
+
+/* ============================ 交互 ============================ */
 .lift { transition: transform .15s ease, box-shadow .15s ease; }
 .lift:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow-lg); }
+
+/* 键盘焦点。按压感只对鼠标生效，键盘用户也得看得见自己在哪 */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: var(--bw) solid var(--coral);
+  outline-offset: 3px;
+}
+
+/* ============================ 改造已有页面 ============================ */
+/* 这套风格「绝不圆角」，但光加新类去不掉页面上已有的圆角。
+ * 把 .vcs-takeover 加在 <body> 或某个容器上，作用域内所有圆角被抹平。 */
+.vcs-takeover, .vcs-takeover *,
+.vcs-takeover *::before, .vcs-takeover *::after { border-radius: 0 !important; }
+
+/* 再狠一点：连别人带 blur 的柔和阴影一起抹掉，只留本设计系统自己的实心阴影 */
+.vcs-takeover-hard *:not(.card):not(.card-lg):not(.btn):not(.tag):not(.lift):not([class*="tone-"]) {
+  box-shadow: none !important;
+}
+
+/* ============================ 表单 ============================ */
+/* 原生控件自带圆角和系统蓝，不接管的话整页只有按钮是野兽派、其余全是 macOS 默认 */
+.field {
+  display: block; width: 100%;
+  padding: 10px 12px;
+  font: inherit; font-size: var(--fs-body); color: var(--ink);
+  background: var(--surface);
+  border: var(--bw) solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  outline: none;
+}
+.field::placeholder { color: var(--muted); }
+.field:disabled { opacity: .5; cursor: not-allowed; }
+textarea.field { resize: vertical; min-height: 88px; line-height: 1.6; }
+
+/* 下拉箭头用两道斜切拼出实心三角，不引任何图片 */
+select.field {
+  appearance: none; -webkit-appearance: none; padding-right: 36px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--ink) 50%),
+    linear-gradient(135deg, var(--ink) 50%, transparent 50%);
+  background-position: calc(100% - 20px) center, calc(100% - 14px) center;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+
+/* 勾选框 / 单选框：一律方的。圆的单选框在这套语言里是异物 */
+.check {
+  appearance: none; -webkit-appearance: none;
+  width: 20px; height: 20px; flex: none; margin: 0;
+  background: var(--surface);
+  border: var(--bw) solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+.check:checked {
+  background-color: var(--coral);
+  background-image: linear-gradient(var(--surface), var(--surface));
+  background-size: 8px 8px; background-position: center; background-repeat: no-repeat;
+}
+
+.field-label { display: block; font-weight: 700; font-size: var(--fs-body); margin-bottom: var(--sp-1); }
+.field-row   { display: flex; gap: 10px; align-items: center; cursor: pointer; }
+
+/* ============================ 表格 ============================ */
+/* 外框是 3px 实黑，行与行之间用细线 —— 每行都描 3px 会变成一堆黑格子 */
+.table {
+  width: 100%; border-collapse: collapse;
+  background: var(--surface); color: var(--ink);
+  border: var(--bw) solid var(--ink);
+  box-shadow: var(--shadow);
+}
+.table th, .table td {
+  padding: 10px 14px; text-align: left;
+  font-size: var(--fs-body); line-height: 1.5;
+  border-bottom: var(--bw-thin) solid var(--line);
+}
+.table thead th {
+  background: var(--paper);
+  font-family: var(--font-mono); font-weight: 700; font-size: var(--fs-label);
+  letter-spacing: .06em; text-transform: uppercase;
+  border-bottom: var(--bw) solid var(--ink);
+}
+.table tbody tr:last-child td { border-bottom: 0; }
+
+/* ============================ 导航 ============================ */
+.nav { display: flex; gap: var(--sp-1); align-items: center; flex-wrap: wrap; }
+.nav-item {
+  display: inline-flex; align-items: center; padding: 6px 12px;
+  font-weight: 700; font-size: var(--fs-body); color: var(--ink); text-decoration: none;
+  background: transparent; border: var(--bw-thin) solid transparent; border-radius: var(--radius);
+}
+.nav-item:hover { background: var(--surface); border-color: var(--ink); }
+/* 选中态用反白。这套风格没有主题色高亮可用，黑底白字是最有力也最自洽的表达 */
+.nav-item.is-active, .nav-item[aria-current] {
+  background: var(--ink); color: var(--surface); border-color: var(--ink);
+}
+
+/* ============================ 列表 ============================ */
+/* 浏览器默认的小圆点在一套「全是硬边」的语言里非常突兀，换成 3px 黑边的小色块 */
+.list { list-style: none; padding: 0; margin: 0; }
+.list > li { display: flex; gap: 10px; align-items: flex-start; line-height: 1.9; }
+.list > li::before {
+  content: ""; flex: none; width: 9px; height: 9px; margin-top: .58em;
+  background: var(--coral); border: var(--bw-thin) solid var(--ink);
+}
+.list-mist > li::before { background: var(--mist); }
+.list-sage > li::before { background: var(--sage); }
+
+.list-num { list-style: none; padding: 0; margin: 0; counter-reset: vcs; }
+.list-num > li { display: flex; gap: 12px; align-items: flex-start; line-height: 1.9; counter-increment: vcs; }
+.list-num > li::before {
+  content: counter(vcs); flex: none;
+  min-width: 24px; height: 24px; display: grid; place-content: center; margin-top: .2em;
+  font-family: var(--font-mono); font-weight: 700; font-size: var(--fs-label);
+  background: var(--surface); border: var(--bw-thin) solid var(--ink); box-shadow: var(--shadow-sm);
+}
+
+/* ============================ 代码 / 引用 / 分隔 / 图片 ============================ */
+code, kbd, samp {
+  font-family: var(--font-mono); font-size: .92em;
+  background: var(--mint); color: var(--ink);
+  border: var(--bw-thin) solid var(--ink); padding: 0 5px;
+}
+.code-block {
+  font-family: var(--font-mono); font-size: 14px; line-height: 1.7;
+  background: var(--surface); color: var(--ink);
+  border: var(--bw) solid var(--ink); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: var(--sp-2); overflow-x: auto; margin: 0;
+}
+.code-block code { background: none; border: 0; padding: 0; font-size: inherit; }
+
+blockquote, .quote {
+  margin: 0; padding-left: var(--sp-2);
+  border-left: var(--bw) solid var(--ink);
+  color: var(--muted); line-height: 1.8;
+}
+
+hr, .divider { border: 0; border-top: var(--bw) solid var(--ink); margin: var(--sp-4) 0; }
+
+/* 图片要边框就用 3px 黑边 + 硬阴影，别用圆角 + 白色光晕 */
+.frame {
+  display: block; max-width: 100%; height: auto;
+  background: var(--surface);
+  border: var(--bw) solid var(--ink); border-radius: var(--radius); box-shadow: var(--shadow);
+}
+
+/* ============================ 提示条 ============================ */
+/* 语义靠 .tone-ok / .tone-warn / .tone-err，别拿 --coral 当错误色（它是主按钮色） */
+.alert {
+  display: flex; gap: var(--sp-1); align-items: flex-start;
+  padding: 12px 16px;
+  background: var(--surface); color: var(--ink);
+  border: var(--bw) solid var(--ink); border-radius: var(--radius); box-shadow: var(--shadow);
+}
+.alert b { flex: none; }
+
+/* ============================ 移动端降级 ============================ */
+/* 32px 网格在 390px 屏上会变成粗糙的大格子；3px 边和 4px 阴影在小屏的视觉权重接近翻倍。
+ * 字号已经用 clamp() 自适应，这里降的是「密度」。 */
+@media (max-width: 640px) {
+  :root {
+    --bw: 2px;
+    --bw-thin: 2px;
+    --shadow-sm: 1px 1px 0 0 var(--ink);
+    --shadow:    3px 3px 0 0 var(--ink);
+    --shadow-lg: 4px 4px 0 0 var(--ink);
+    --fs-subhead: 18px;
+    --sp-3: 20px;
+  }
+  body {
+    background-size: 22px 22px, 22px 22px, 100% 100%;
+    /* iOS Safari 上 fixed 会被强制降级、长页滚动还会掉帧，小屏直接关掉 */
+    background-attachment: scroll, scroll, scroll;
+  }
+  .card { padding: var(--sp-2); }
+  .body { max-width: none; }
+  .table th, .table td { padding: 8px 10px; }
+  .code-block { font-size: 13px; }
+}
+
+/* 用户在系统里关了动效就别再位移 */
+@media (prefers-reduced-motion: reduce) {
+  .btn, .lift, .btn-quiet { transition: none; }
+  .btn:hover, .btn:active, .lift:hover, .btn-quiet:hover, .btn-quiet:active { transform: none; }
+}

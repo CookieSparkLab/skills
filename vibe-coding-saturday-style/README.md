@@ -2,8 +2,12 @@
 
 > 一个开源的 **Claude Code / Codex Skill**：一键把任意网页换成 **VIBE CODING SATURDAY** 活动官网同款视觉风格。
 > neo-brutalism 新野兽派 —— 暖米色纸张底 · 橄榄绿网格 · 珊瑚红 / 雾蓝点缀 · 3px 纯黑硬边 · 实心偏移阴影 · 直角无圆角。
+> 中西文同族的 HarmonyOS Sans SC + 等宽 IBM Plex Mono 角标。**当前版本 v2。**
 
 零依赖、纯 CSS，**任何 HTML / React / Vue 项目都能用**，新手当天就能把丑页面变得有设计感。
+
+覆盖排版（5 个字号角色 + note 说明层）、卡片 / 按钮 / 标签、表单、表格、导航、列表、代码块、提示条，
+外加高密度界面降级（`.dense`）、移动端断点、键盘焦点态，以及改造已有页面用的去圆角接管层（`.vcs-takeover`）。
 
 ---
 
@@ -39,16 +43,19 @@ AI 会自动：① 在 `<head>` 加字体 → ② 注入 `theme.css` 的设计 t
 ```html
 <head>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Audiowide&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/harmonyos-sans-sc-webfont-splitted@1.1.0/dist/index.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="theme.css">
 </head>
 <body>
-  <span class="tag" style="background:var(--mist)">PEOPLE · 一起来玩的人</span>
-  <h1 class="display" style="font-size:3rem">把想法变成产品</h1>
-  <div class="card card-lg">
-    <h3 class="kicker">今日 Demo</h3>
-    <p>一句话说清你要做什么，剩下交给 AI。</p>
+  <span class="tag label tone-mist">PEOPLE · 一起来玩的人</span>
+  <h1 class="display">把想法变成产品</h1>
+  <div class="card card-lg tone-mist">
+    <h3 class="subhead">今日 Demo</h3>
+    <p class="body">一句话说清你要做什么，剩下交给 AI。</p>
+    <p class="note">次要说明用 .note：同字号 + 灰 + 左竖线。</p>
     <button class="btn">开工 →</button>
+    <button class="btn btn-secondary">再想想</button>
   </div>
 </body>
 ```
@@ -60,7 +67,8 @@ AI 会自动：① 在 `<head>` 加字体 → ② 注入 `theme.css` 的设计 t
 | 文件 | 作用 |
 |------|------|
 | `SKILL.md` | 给 AI 看的技能说明（含设计原则、完整 CSS、用法）。这是 skill 的本体。 |
-| `theme.css` | 抽出来的纯 CSS，想手动用就直接引这个。 |
+| `theme.css` | **唯一真源**。抽出来的纯 CSS，想手动用就直接引这个。 |
+| `build.py` | 把 `theme.css` 注入 SKILL.md 的代码块。改完 CSS 跑一次 `python3 build.py`。 |
 
 ## 配色
 
@@ -68,9 +76,13 @@ AI 会自动：① 在 `<head>` 加字体 → ② 注入 `theme.css` 的设计 t
 |------|------|--------|
 | `--paper` `#f5f1e8` | 暖米 | 整页背景（别用纯白） |
 | `--ink` `#0e0e0e` | 近黑 | 文字、**所有边框、所有阴影** |
-| `--coral` `#DC5C5D` | 珊瑚红 | 主按钮、最重要的标签（克制用） |
+| `--muted` `#5a5a55` | 灰 | 次要说明文字（别拿纯黑当说明文字） |
+| `--coral` `#DC5C5D` | 珊瑚红 | 主按钮、最重要的标签（克制用）。**配白字**。白字 3.65:1 只过大字号档，coral 上别放小字 |
 | `--mist` `#B6CEED` | 雾蓝 | 标签 / 卡片底 |
-| `--pink` `#ffe9f8` · `--sage` `#d7e7d4` · `--mint` `#cde2da` | 粉 / 绿 / 青 | 卡片轮换，制造活泼感 |
+| `--pink` `#ffe9f8` · `--sage` `#d7e7d4` · `--mint` `#a9cfc4` | 粉 / 绿 / 青 | 卡片轮换，制造活泼感 |
+| `--ok` `#c7e3ad` · `--warn` `#ffd9a8` · `--err` `#ffc2be` | 浅绿 / 浅橙 / 浅红 | 成功 / 警告 / 错误。语义色和主按钮色必须分开 |
+
+换底色一律用修饰类 `.tone-coral` `.tone-mist` `.tone-pink` `.tone-sage` `.tone-mint` `.tone-ok` `.tone-warn` `.tone-err`，别写 inline style。
 
 ---
 
