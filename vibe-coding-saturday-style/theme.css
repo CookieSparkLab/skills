@@ -1,13 +1,15 @@
 /* ============================================================================
  * VIBE CODING SATURDAY · 同款设计系统  v2  (neo-brutalism)
- * 暖纸底 + 3px 黑硬边 + 实心偏移阴影（无模糊）+ 直角
+ * 暖纸底 + 3px 黑硬边 + 实心偏移阴影（无模糊）+ 直角（.vcs-soft 变体除外）
  * ----------------------------------------------------------------------------
  * 用法：<link> 或 @import 本文件，然后给元素加类：
  *   排版  .display / .display-tight / .display-en / .headline / .subhead / .body / .label / .note
- *   组件  .card / .card-lg / .btn / .btn-secondary / .btn-ghost / .btn-sm / .tag
+ *   组件  .card / .card-lg / .btn / .btn-secondary / .btn-ghost / .btn-sm / .tag / .seg
+ *   日历  .cal / .cal-head / .cal-body / .cal-hours / .cal-col / .cal-event
  *   配色  .tone-coral / .tone-mist / .tone-pink / .tone-sage / .tone-mint / .tone-ok / .tone-warn / .tone-err
  *   交互  .lift
  *   改造  .vcs-takeover（抹掉已有页面的圆角）
+ *   变体  .vcs-soft（工具型界面：允许小圆角、次要元素退成浅灰细线。唯一允许圆角的地方）
  * ----------------------------------------------------------------------------
  * <head> 里先引字体：
  *   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,8 +45,12 @@
   /* ---------- 边框 / 形状 / 阴影 ---------- */
   --bw:      3px;       /* 标准硬边 */
   --bw-thin: 2px;       /* 小元素（tag / 小按钮） */
-  --radius:  0;         /* 永远是 0。这套风格没有圆角 */
+  --radius:  0;         /* 默认 0。只有 .vcs-soft 变体会改它，别处一律不许写圆角 */
+  --radius-sm: 0;       /* 小元素（日程块 / tag） */
+  --radius-lg: 0;       /* 大面板 */
   --line: rgba(14,14,14,.14);  /* 表格 / 列表内部的细分隔线。外框仍然是 3px 实黑 */
+  --hairline: var(--ink);      /* 次要元素（安静按钮等）的描边。默认就是黑，.vcs-soft 里退成浅灰 */
+  --faint: var(--muted);       /* 比 --muted 更弱一档的文字（时间刻度）。默认等于 --muted */
   --shadow-sm: 2px 2px 0 0 var(--ink);
   --shadow:    4px 4px 0 0 var(--ink);
   --shadow-lg: 6px 6px 0 0 var(--ink);
@@ -161,6 +167,9 @@ body {
 .btn-ghost     { background: transparent; color: var(--ink); border-color: transparent; box-shadow: none; }
 .btn-ghost:hover { background: var(--surface); border-color: var(--ink); box-shadow: var(--shadow-sm); transform: none; }
 .btn-sm { padding: 6px 12px; font-size: var(--fs-label); border-width: var(--bw-thin); box-shadow: var(--shadow-sm); }
+/* .btn-sm 写在 .btn-ghost 后面，会把幽灵按钮的「无阴影」盖掉，这里补回来 */
+.btn-ghost.btn-sm { box-shadow: none; }
+.btn-ghost.btn-sm:hover { box-shadow: var(--shadow-sm); }
 
 /* ============================ 配色修饰类 ============================ */
 /* 加在 .card / .tag / 任意块上换底色。别再手写 inline style —— 那是 v1 输出不一致的主因 */
@@ -206,15 +215,21 @@ body {
 .lift { transition: transform .15s ease, box-shadow .15s ease; }
 .lift:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow-lg); }
 
-/* 键盘焦点。按压感只对鼠标生效，键盘用户也得看得见自己在哪 */
-:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+/* 键盘焦点。按压感只对鼠标生效，键盘用户也得看得见自己在哪。
+ * 只管按钮 / 链接这类「点一下就走」的元素。
+ * 输入框不在这里：输入框一获得焦点就有 outline，珊瑚红粗框套在黑边外面非常吵，
+ * 输入框的焦点态见下方表单区的 .field:focus（阴影加深，不画 outline）。 */
+:where(a, button, summary, [tabindex]:not(input):not(select):not(textarea)):focus-visible {
   outline: var(--bw) solid var(--coral);
   outline-offset: 3px;
 }
+/* 输入类控件一律不要 outline —— 包括没套 .field 的原生控件 */
+:where(input, select, textarea):focus { outline: none; }
 
 /* ============================ 改造已有页面 ============================ */
-/* 这套风格「绝不圆角」，但光加新类去不掉页面上已有的圆角。
- * 把 .vcs-takeover 加在 <body> 或某个容器上，作用域内所有圆角被抹平。 */
+/* 这套风格默认「绝不圆角」，但光加新类去不掉页面上已有的圆角。
+ * 把 .vcs-takeover 加在 <body> 或某个容器上，作用域内所有圆角被抹平。
+ * 注意：它和 .vcs-soft 互斥（!important 会把 soft 的圆角也抹掉），两个别同时用。 */
 .vcs-takeover, .vcs-takeover *,
 .vcs-takeover *::before, .vcs-takeover *::after { border-radius: 0 !important; }
 
@@ -236,6 +251,8 @@ body {
   outline: none;
 }
 .field::placeholder { color: var(--muted); }
+/* 焦点态：不画 outline，阴影加深一档，和按钮的「按压感」同一套语言 */
+.field:focus { outline: none; box-shadow: var(--shadow); }
 .field:disabled { opacity: .5; cursor: not-allowed; }
 textarea.field { resize: vertical; min-height: 88px; line-height: 1.6; }
 
@@ -267,6 +284,9 @@ select.field {
 }
 
 .field-label { display: block; font-weight: 700; font-size: var(--fs-body); margin-bottom: var(--sp-1); }
+/* .field 是加在控件本身上的。「标签 + 控件」的外层容器用 .field-group，别也叫 .field ——
+ * 撞名之后 AI 会顺手写 .field input:focus{outline:...}，焦点描边就是这么回来的 */
+.field-group { margin-bottom: var(--sp-2); }
 .field-row   { display: flex; gap: 10px; align-items: center; cursor: pointer; }
 
 /* ============================ 表格 ============================ */
@@ -302,6 +322,18 @@ select.field {
 .nav-item.is-active, .nav-item[aria-current] {
   background: var(--ink); color: var(--surface); border-color: var(--ink);
 }
+
+/* 分段切换（月 / 周、列表 / 卡片）：一整块黑框，选中项反白 */
+.seg {
+  display: inline-flex; overflow: hidden;
+  border: var(--bw-thin) solid var(--ink); border-radius: var(--radius);
+  background: var(--surface);
+}
+.seg-item {
+  padding: 6px 14px; border: 0; background: transparent; color: var(--ink);
+  font: inherit; font-size: var(--fs-label); font-weight: 700; cursor: pointer;
+}
+.seg-item.is-active, .seg-item[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
 
 /* ============================ 列表 ============================ */
 /* 浏览器默认的小圆点在一套「全是硬边」的语言里非常突兀，换成 3px 黑边的小色块 */
@@ -362,6 +394,88 @@ hr, .divider { border: 0; border-top: var(--bw) solid var(--ink); margin: var(--
 }
 .alert b { flex: none; }
 
+/* ============================ 日历 / 时间轴（周视图、日视图） ============================ */
+/* 结构：
+ *   .cal
+ *     .cal-head        星期表头（米色条，不进白面板）。今天那格加 .is-today
+ *     .cal-body        白面板，自己滚动。JS 初次渲染后把 scrollTop 设到 9 点
+ *       .cal-hours     左侧时间刻度，每格一个 .cal-hour
+ *       .cal-col × 7   每天一列，内含 24 个 .cal-slot 当格线，日程块 .cal-event 绝对定位
+ * 每小时高度只在 --hour-h 一处定义，JS 里读它算 top / height，别再写死一个 48。 */
+.cal { --hour-h: 48px; --cal-gutter: 56px;
+       display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.cal-head, .cal-body { display: grid; grid-template-columns: var(--cal-gutter) repeat(7, 1fr); }
+.cal-head > * {
+  padding: var(--sp-2) 0 var(--sp-1); text-align: center;
+  font-size: var(--fs-label); font-weight: 500; color: var(--muted);
+}
+.cal-head > .is-today { color: var(--coral); font-weight: 700; }
+.cal-body {
+  flex: 1; min-height: 0; overflow-y: auto;
+  background: var(--surface); color: var(--ink);
+  border: var(--bw) solid var(--ink); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow);
+}
+.cal-hour {
+  height: var(--hour-h); padding-right: var(--sp-1); text-align: right;
+  font-size: 11px; color: var(--faint); transform: translateY(-.7em);
+  font-variant-numeric: tabular-nums;
+}
+.cal-col  { position: relative; border-left: 1px solid var(--line); cursor: pointer; }
+.cal-slot { height: var(--hour-h); border-bottom: 1px solid var(--line); }
+/* 日程块：换底色用 .tone-mist / .tone-pink / .tone-sage / .tone-mint，别写 inline background */
+.cal-event {
+  position: absolute; left: 4px; right: 4px; z-index: 2; overflow: hidden;
+  padding: 4px 8px; font-size: 12px; font-weight: 400; line-height: 1.5;
+  border: var(--bw-thin) solid var(--ink); border-radius: var(--radius-sm);
+  box-shadow: 2px 3px 0 0 var(--ink);
+  cursor: pointer; transition: transform .15s ease, box-shadow .15s ease;
+}
+/* 默认底色放进 :where()（优先级为 0），这样 .tone-* 才盖得住。
+ * 直接写在 .cal-event 里的话，它在 .tone-* 后面，同优先级后写的赢 → 日程块全变白 */
+:where(.cal-event) { background: var(--surface); color: var(--ink); }
+.cal-event:hover { transform: translate(-1px,-1px); box-shadow: 3px 4px 0 0 var(--ink); }
+
+/* ============================ 变体：.vcs-soft（工具型界面） ============================ */
+/* 日程、看板、后台这种「一整屏都是控件」的工具：全套 3px 黑边 + 直角 + 网格底会又黑又硬。
+ * 加在 <body> 上，规则变成：
+ *   ① 允许小圆角（这是整套系统里唯一允许圆角的地方）
+ *   ② 黑边 + 实心阴影只留给「主角」：主按钮 .btn、分段切换 .seg、日程块 .cal-event、输入框 .field
+ *   ③ 次要元素（.btn-quiet、顶栏分隔、面板外框）退成浅灰细线 --hairline
+ *   ④ 页面去掉网格和渐变底纹，只留纯米色
+ * 组件不用换，改的全是 token。 */
+.vcs-soft {
+  --radius-sm: 3px;
+  --radius:    6px;
+  --radius-lg: 8px;
+  --bw: 2px;
+  --bw-thin: 2px;
+  --hairline: #dce0e8;   /* 次要按钮 / 顶栏下沿 */
+  --line:     #f1f3f5;   /* 时间格线、表格内线：比默认浅得多，面板里只剩一层很淡的格子 */
+  --faint:    #a2adb5;   /* 时间刻度 */
+  --muted:    #747e8a;   /* 星期表头等次要文字，偏冷灰 */
+  --shadow-sm: 2px 2px 0 0 var(--ink);
+  --shadow:    3px 3px 0 0 var(--ink);
+  --shadow-lg: 4px 4px 0 0 var(--ink);
+}
+body.vcs-soft, .vcs-soft body { background-image: none; }
+.vcs-soft .btn-quiet { border: 1px solid var(--hairline); box-shadow: none; }
+.vcs-soft .btn-quiet:hover { border-color: var(--ink); box-shadow: none; }
+.vcs-soft .cal-body { border: 0; box-shadow: none; }
+/* 顶栏：白底 + 浅灰下沿，不是 3px 黑线 */
+.vcs-soft .toolbar { border-bottom: 1px solid var(--hairline); }
+
+/* 顶栏（两种模式通用）：标题 + 一排操作，主按钮靠右 */
+.toolbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 20px; background: var(--surface); color: var(--ink);
+  border-bottom: var(--bw) solid var(--ink);
+}
+.toolbar-title { font-size: 18px; font-weight: 900; margin: 0 var(--sp-1) 0 0; }
+.toolbar-end { margin-left: auto; }
+/* 工具栏里的主按钮比正文页的小一号，不然一个按钮比标题还抢眼 */
+.toolbar .btn:not(.btn-sm) { padding: 8px 16px; font-size: 14px; }
+
 /* ============================ 移动端降级 ============================ */
 /* 32px 网格在 390px 屏上会变成粗糙的大格子；3px 边和 4px 阴影在小屏的视觉权重接近翻倍。
  * 字号已经用 clamp() 自适应，这里降的是「密度」。 */
@@ -388,6 +502,6 @@ hr, .divider { border: 0; border-top: var(--bw) solid var(--ink); margin: var(--
 
 /* 用户在系统里关了动效就别再位移 */
 @media (prefers-reduced-motion: reduce) {
-  .btn, .lift, .btn-quiet { transition: none; }
-  .btn:hover, .btn:active, .lift:hover, .btn-quiet:hover, .btn-quiet:active { transform: none; }
+  .btn, .lift, .btn-quiet, .cal-event { transition: none; }
+  .btn:hover, .btn:active, .lift:hover, .btn-quiet:hover, .btn-quiet:active, .cal-event:hover { transform: none; }
 }
