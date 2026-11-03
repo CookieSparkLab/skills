@@ -267,12 +267,15 @@ body { background: #3a363f; font-family: var(--font-body); color: var(--text); }
 
 /* ============ 页型 7 · 大字转场 .s-break ============ */
 .s-break { align-items: center; justify-content: center; text-align: center; }
+/* 章节转场：上方环节名需要在投屏时清晰可读。 */
+.s-break .kicker { font-size: 40px; }
 .s-break .display {
   font-family: var(--font-display);
-  font-size: 190px; font-weight: 900; line-height: 1.1; letter-spacing: -0.015em;
+  font-size: 132px; font-weight: 900; line-height: 1.2; letter-spacing: -0.015em;
   color: var(--text);
   margin: 44px 0 48px;
 }
+.s-break .display .line { display: block; }
 .s-break .sub { font-size: 32px; font-weight: 500; color: rgba(255,255,255,.7); }
 
 /* ============ 页型 8 · 结尾大字 .s-end ============ */
@@ -327,7 +330,7 @@ body { background: #3a363f; font-family: var(--font-body); color: var(--text); }
 | 网格卡 | `.s-grid` | 流程、6 个要点 | `.grid6 > .flow-card × 6`，`.fnum` + `.ftitle` + `.fnote`，底色循环 |
 | 单张大卡 | `.s-big` | 长文、PRD、问答 | `.big-card` 内 `.big-head`（`.big-word` + `.big-sub`）+ `.two-cols`（`.faq` 问答对） |
 | 高亮卡列 | `.s-hi` | 三要素、划重点 | `.grid3 > .hi-card × 3`，`.hnum` + `.htxt`，顶对齐，底色循环 |
-| 大字转场 | `.s-break` | 章节分隔 | `.kicker` + `.display`（190px 白字）+ `.sub` |
+| 大字转场 | `.s-break` | 章节分隔 | `.kicker`（40px）+ `.display`（132px 白字）+ `.sub`；标题建议不超过两行 |
 | 结尾 | `.s-end` | 最后一页 | `.kicker` + 250px `.display`（`#e5989b` 大字） |
 
 每页页头固定为（封面 / 转场 / 结尾除外）：
@@ -367,7 +370,7 @@ block 底色循环的标准写法（按阅读顺序轮流加类）：
 | 角色 | 尺寸 / 字重 | 用在哪 |
 |------|------------|--------|
 | 封面 `.display` | 150px / 900 | 仅封面 |
-| 转场 `.display` | 190px / 900 | 仅 `.s-break` |
+| 转场 `.display` | 132px / 900，行高 1.2 | 仅 `.s-break`；长标题按语义拆行，建议最多两行 |
 | 结尾 `.display` | 250px / 900 | 仅 `.s-end` |
 | 页标题 `.headline` | 96px / 900 | 每页一个 |
 | 收束句 `.punchline` | 56px / 900 | 页底总结 |
@@ -377,7 +380,8 @@ block 底色循环的标准写法（按阅读顺序轮流加类）：
 | 大卡主题词 `.big-word` | 92px / 900 | `.s-big` |
 | 正文 `.items` / `.faq .a` | 25–31px | 块内正文 |
 | 注释 `.fnote` | 25px / muted | 网格卡注释 |
-| kicker / 编号 | 22px / 700 等宽 | `.kicker` `.fnum` `.page-index` |
+| 转场 kicker | 40px / 700 等宽 | `.s-break .kicker`，章节名要让投屏观众看清 |
+| 内容页 kicker / 编号 | 22px / 700 等宽 | 内容页 `.kicker`、`.fnum`、`.page-index` |
 
 ## 布局硬规则
 
@@ -386,6 +390,7 @@ block 底色循环的标准写法（按阅读顺序轮流加类）：
 3. **block 三色循环**：要么全白，要么 白 → cream → sand 交替，禁止孤立单块上色。
 4. **内容必须放得下**：1920×1080 定尺，文字多了就减内容或收紧行距，不许溢出裁切。
 5. 大标题行高 1.15 是下限——中文多行标题行高低于 1.15 会挤在一起。
+6. **转场主标题与环节名**：使用 132px / 40px 的默认比例；按语义手动断行，建议最多两行，避免单字成行。每行用 `<span class="line">`；内容较长时可适当缩小标题，保证四边留白、不裁切。内容页 kicker 仍为 22px。
 
 ## ✅ Do / ❌ Don't
 

@@ -221,12 +221,15 @@ body { background: #3a363f; font-family: var(--font-body); color: var(--text); }
 
 /* ============ 页型 7 · 大字转场 .s-break ============ */
 .s-break { align-items: center; justify-content: center; text-align: center; }
+/* 章节转场：上方环节名需要在投屏时清晰可读。 */
+.s-break .kicker { font-size: 40px; }
 .s-break .display {
   font-family: var(--font-display);
-  font-size: 190px; font-weight: 900; line-height: 1.1; letter-spacing: -0.015em;
+  font-size: 132px; font-weight: 900; line-height: 1.2; letter-spacing: -0.015em;
   color: var(--text);
   margin: 44px 0 48px;
 }
+.s-break .display .line { display: block; }
 .s-break .sub { font-size: 32px; font-weight: 500; color: rgba(255,255,255,.7); }
 
 /* ============ 页型 8 · 结尾大字 .s-end ============ */
