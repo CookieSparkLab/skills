@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Muted Earthy Deck · 模板</title>
+<!--
+  MUTED EARTHY DECK · HTML PPT 模板
+  用法：复制本文件 → 替换每个 section.slide 里的文字 → 按需在 8 种页型中增删页面。
+  规则（详见 SKILL.md）：
+    · 画布永远 #6d6875；正文白；标题高亮词 #e5989b；kicker #f5cac3；序号 #b5838d
+    · block 只用 白 / #f2e9e4 / #ebd4ca —— 同页并列 block 要么全白，要么按 白→cream→sand 循环交替
+    · 渐变只允许背景格纹层；文字/卡片/按钮一律纯色
+    · 四边留白统一 100px；并列卡片内容顶对齐；2px 细边 + 4px 圆角 + 无阴影
+  操作：→ / 空格 / 点击右半屏 = 下一步；← / 点击左半屏 = 上一步；Home = 回封面
+-->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://cdn.jsdelivr.net/npm/harmonyos-sans-sc-webfont-splitted@1.1.0/dist/index.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style id="theme">
+/* ============================================================================
+ * MUTED EARTHY DECK · HTML PPT 设计系统  v1
+ * 深紫灰画布 #6d6875 + 白色大标题（#e5989b 高亮词）+ 细框 block（白 / #f2e9e4 / #ebd4cb）
+ * ----------------------------------------------------------------------------
+ * 用法：<link> 或整段复制本文件，然后：
+ *   舞台    .viewport > .stage > section.slide × N（1920×1080 定尺，自动等比缩放）
+ *   页头    .head-row > .kicker-rule(.kicker) + .headline(.hi) + .page-index
+ *   页型    .s-cover / .s-list / .s-cols / .s-grid / .s-big / .s-hi / .s-break / .s-end
+ *   block   .card（+.tone-cream / .tone-sand）、.row-card、.pill、.faq
+ *   逐条揭示  .step（JS 点亮 .in，全部出完才翻页）
+ *   HUD     .progress > i + .hud
+ * ----------------------------------------------------------------------------
+ * <head> 里先引字体：
+ *   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ *   <link href="https://cdn.jsdelivr.net/npm/harmonyos-sans-sc-webfont-splitted@1.1.0/dist/index.css" rel="stylesheet">
+ *   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+ * ========================================================================== */
+
+:root {
+  /* ---------- 画布与文字 ---------- */
+  --canvas:  #6D6875;   /* Stormy Plum · 所有页面背景，每一页都是它，不许换 */
+  --text:    #FFFFFF;   /* 画布上的正文与大标题 */
+  --hi:      #E5989B;   /* Cotton Candy · 大标题里的高亮词，别无他用 */
+  --sub:     #B5838D;   /* Dusty Rose · 序号 / 编号 / 块内小标题 */
+  --kicker-c:#F5CAC3;   /* 大标题顶上的 kicker 小小小标题 */
+
+  /* ---------- block 三色（只允许这三种底色） ---------- */
+  --block:       #FFFFFF;
+  --block-cream: #F2E9E4;
+  --block-sand:  #EBD4CB;
+  --ink:         #6D6875;   /* block 内的深色文字 + 所有细边框 */
+  --muted-on-block: rgba(109,104,117,.72);
+
+  /* ---------- 边框 / 形状 ---------- */
+  --bw:       2px;      /* 所有细边框，全系统统一 */
+  --bw-thin:  2px;
+  --radius:   4px;      /* 唯一圆角值 */
+  --line:     rgba(109,104,117,.25);  /* block 内部分隔线 */
+
+  /* ---------- 字体：中西文同族，不要中文一套拉丁一套 ---------- */
+  --font-display: "HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --font-body:    "HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --font-mono:    "IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+
+/* ============ 舞台：1920×1080 定尺，等比缩放居中 ============ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; }
+body { background: #3a363f; font-family: var(--font-body); color: var(--text); }
+.viewport { position: fixed; inset: 0; overflow: hidden; }
+.stage {
+  position: absolute; left: 50%; top: 50%;
+  width: 1920px; height: 1080px;
+  transform: translate(-50%, -50%);
+  transform-origin: center center;
+  background: var(--canvas);
+  overflow: hidden;
+}
+
+/* ============ 幻灯片通用 ============
+   网格 + 一层极淡 wash：全 deck 唯一允许渐变的地方。
+   文字、卡片、按钮上一律禁止渐变。 */
+.slide {
+  position: absolute; inset: 0;
+  padding: 100px;     /* 四边统一 100px 留白，不许偷减任何一边 */
+  display: flex; flex-direction: column;
+  opacity: 0; visibility: hidden;
+  transition: opacity .45s ease;
+  background-color: var(--canvas);
+  background-image:
+    linear-gradient(90deg, rgba(255,255,255,.07) 1px, transparent 1px),
+    linear-gradient( 0deg, rgba(255,255,255,.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(229,152,155,.10), transparent 42%, rgba(255,180,162,.08));
+  background-size: 32px 32px, 32px 32px, 100% 100%;
+  color: var(--text);
+}
+.slide.active { opacity: 1; visibility: visible; z-index: 1; }
+
+/* ============ 页头 ============ */
+/* kicker：Plex Mono 等宽小字 + 标尺线 */
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 22px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--kicker-c);
+}
+.kicker-rule { display: flex; align-items: center; gap: 20px; }
+.kicker-rule::after { content: ""; width: 72px; height: 2px; background: var(--hi); }
+
+.head-row { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 54px; }
+.headline {
+  font-family: var(--font-display);
+  font-size: 96px; font-weight: 900;
+  line-height: 1.15; letter-spacing: -0.01em;
+  margin-top: 24px;
+  color: var(--text);
+}
+.hi { color: var(--hi); }   /* 大标题里的高亮词，一条标题最多一个 */
+.page-index {
+  font-family: var(--font-mono);
+  font-size: 22px; font-weight: 500; letter-spacing: .1em;
+  color: var(--sub); white-space: nowrap; padding-bottom: 14px;
+}
+.page-index b { color: var(--text); font-weight: 700; }
+
+/* ============ block：白 / cream / sand 三种底色 ============
+   配色规则：同页并列 block 要么全白，要么按 白 → cream → sand 循环交替；
+   禁止整页白色里只给一个 block 上色。 */
+.card {
+  background: var(--block);
+  color: var(--ink);        /* 必须显式写，块内文字一律深色 */
+  border: var(--bw) solid var(--ink);
+  border-radius: var(--radius);
+}
+.card.tone-cream, .row-card.tone-cream { background: var(--block-cream); }
+.card.tone-sand,  .row-card.tone-sand  { background: var(--block-sand); }
+
+/* 标签 pill */
+.pill {
+  display: inline-block;
+  font-size: 24px; font-weight: 700;
+  padding: 10px 24px;
+  border-radius: var(--radius);
+  border: var(--bw-thin) solid var(--ink);
+  background: var(--block); color: var(--ink);
+}
+.pill.rose { background: var(--sub); border-color: var(--sub); color: #fff; }
+.pill.line { color: var(--sub); border-color: var(--sub); }
+
+/* 逐条揭示（JS 逐个点亮 .in） */
+.step { opacity: 0; transform: translateY(24px); transition: opacity .55s cubic-bezier(.16,1,.3,1), transform .55s cubic-bezier(.16,1,.3,1); }
+.step.in { opacity: 1; transform: none; }
+
+/* ============ 页型 1 · 封面 .s-cover ============ */
+.s-cover { align-items: center; justify-content: center; text-align: center; }
+.s-cover .tag {
+  display: inline-block;
+  font-size: 24px; font-weight: 700;
+  border: var(--bw-thin) solid rgba(255,255,255,.5);
+  border-radius: var(--radius);
+  padding: 14px 30px;
+  margin-bottom: 72px;
+  background: transparent;
+  color: var(--text);
+}
+.s-cover .display {
+  font-family: var(--font-display);
+  font-size: 150px; font-weight: 900;
+  line-height: 1.12; letter-spacing: -0.015em;
+  color: var(--text);
+}
+.s-cover .display .line { display: block; white-space: nowrap; }
+.s-cover .display em { font-style: normal; color: var(--hi); }
+.s-cover .meta {
+  margin-top: 80px;
+  font-family: var(--font-mono);
+  font-size: 20px; font-weight: 500; letter-spacing: .18em;
+  color: rgba(255,255,255,.5); text-transform: uppercase;
+}
+
+/* ============ 页型 2 · 编号清单 .s-list ============ */
+.s-list .rows { display: flex; flex-direction: column; gap: 36px; flex: 1; justify-content: center; }
+.row-card {
+  display: flex; align-items: center; gap: 44px;
+  background: var(--block); color: var(--ink);
+  border: var(--bw) solid var(--ink); border-radius: var(--radius);
+  padding: 46px 56px;
+}
+.row-card .num {
+  font-family: var(--font-mono);
+  font-size: 56px; font-weight: 700; line-height: 1;
+  color: var(--sub);
+}
+.row-card .txt { font-size: 46px; font-weight: 900; line-height: 1.3; }
+
+/* ============ 页型 3 · 两栏对比 .s-cols ============ */
+.s-cols .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; flex: 1; }
+.col-card { padding: 48px 52px; display: flex; flex-direction: column; gap: 36px; }
+.col-card .pill { align-self: flex-start; }
+.col-card .items { display: flex; flex-direction: column; gap: 24px; font-size: 31px; line-height: 1.5; font-weight: 500; }
+.x-mark { color: var(--hi); font-weight: 900; margin-right: 16px; }
+.check-mark { color: var(--sub); font-weight: 900; margin-right: 16px; }
+.punchline {
+  margin-top: 50px; text-align: center;
+  font-family: var(--font-display);
+  font-size: 56px; font-weight: 900; letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+/* ============ 页型 4 · 网格卡 .s-grid（3×2 六宫格） ============ */
+.s-grid .grid6 { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr; gap: 28px; }
+.flow-card { display: flex; flex-direction: column; justify-content: space-between; padding: 36px 40px; }
+.flow-card .fnum { font-family: var(--font-mono); font-size: 22px; font-weight: 700; letter-spacing: .1em; color: var(--sub); }
+.flow-card .ftitle { font-family: var(--font-display); font-size: 46px; font-weight: 900; margin-bottom: 12px; }
+.flow-card .fnote { font-size: 25px; color: var(--muted-on-block); line-height: 1.45; }
+
+/* ============ 页型 5 · 单张大卡 .s-big（PRD / 长文） ============ */
+.s-big .big-card { flex: 1; padding: 52px 64px; display: flex; flex-direction: column; }
+.s-big .big-head { display: flex; align-items: baseline; gap: 40px; padding-bottom: 32px; border-bottom: var(--bw) solid var(--ink); margin-bottom: 36px; }
+.s-big .big-word { font-family: var(--font-display); font-size: 92px; font-weight: 900; letter-spacing: -0.01em; line-height: 1; color: var(--sub); }
+.s-big .big-sub { font-size: 30px; color: var(--muted-on-block); }
+.s-big .big-sub u { text-decoration: underline dashed var(--sub) 2px; text-underline-offset: 8px; }
+.s-big .two-cols { display: grid; grid-template-columns: 1fr 1fr; flex: 1; }
+.s-big .col-a { padding-right: 56px; }
+.s-big .col-b { padding-left: 56px; border-left: var(--bw-thin) solid var(--line); }
+.faq { margin-bottom: 26px; }
+.faq:last-child { margin-bottom: 0; }
+.faq .q { font-size: 28px; font-weight: 900; margin-bottom: 8px; }
+.faq .a { font-size: 25px; line-height: 1.55; color: var(--muted-on-block); }
+
+/* ============ 页型 6 · 高亮卡列 .s-hi（三要素等） ============ */
+/* 同列卡片内容一律顶对齐：不垂直居中，否则文字行数不一会把序号顶得高低不齐 */
+.s-hi .grid3 { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; }
+.hi-card { display: flex; flex-direction: column; justify-content: flex-start; gap: 28px; padding: 56px 48px; }
+.hi-card .hnum {
+  font-family: var(--font-display);
+  font-size: 120px; font-weight: 900; line-height: 1;
+  color: var(--sub);
+}
+.hi-card .htxt { font-family: var(--font-display); font-size: 48px; font-weight: 900; line-height: 1.35; }
+
+/* ============ 页型 7 · 大字转场 .s-break ============ */
+.s-break { align-items: center; justify-content: center; text-align: center; }
+.s-break .display {
+  font-family: var(--font-display);
+  font-size: 190px; font-weight: 900; line-height: 1.1; letter-spacing: -0.015em;
+  color: var(--text);
+  margin: 44px 0 48px;
+}
+.s-break .sub { font-size: 32px; font-weight: 500; color: rgba(255,255,255,.7); }
+
+/* ============ 页型 8 · 结尾大字 .s-end ============ */
+.s-end { align-items: center; justify-content: center; text-align: center; }
+.s-end .display {
+  font-family: var(--font-display);
+  font-size: 250px; font-weight: 900; line-height: 1; letter-spacing: -0.02em;
+  color: var(--hi);
+  margin-top: 36px;
+}
+
+/* ============ HUD：进度条 + 页码 ============ */
+.hud {
+  position: fixed; right: 30px; bottom: 26px; z-index: 50;
+  font-family: var(--font-mono);
+  font-size: 15px; font-weight: 500; letter-spacing: .12em;
+  color: rgba(255,255,255,.6);
+  user-select: none;
+}
+.progress { position: fixed; left: 0; top: 0; right: 0; height: 4px; z-index: 60; background: rgba(255,255,255,.12); }
+.progress i { display: block; height: 100%; background: var(--hi); transition: width .4s ease; }
+</style>
+</head>
+<body>
+
+<div class="viewport">
+  <div class="stage" id="stage">
+
+    <!-- 页型 1 · 封面 .s-cover：tag + 两行大标题（高亮词用 em）+ meta -->
+    <section class="slide s-cover active">
+      <span class="tag">组织名 · 系列名</span>
+      <h1 class="display"><span class="line">第一行标题 <em>高亮词</em></span><span class="line">第二行标题</span></h1>
+      <div class="meta">Event Name · Vol.01</div>
+    </section>
+
+    <!-- 页型 2 · 编号清单 .s-list：rows > row-card × N（N≤4），底色循环 白→cream→sand -->
+    <section class="slide s-list">
+      <div class="head-row">
+        <div>
+          <div class="kicker-rule"><span class="kicker">Kicker · 小小小标题</span></div>
+          <h2 class="headline">页标题，<span class="hi">高亮词</span>最多一个</h2>
+        </div>
+        <span class="page-index"><b>02</b> / 08</span>
+      </div>
+      <div class="rows">
+        <div class="row-card step"><span class="num">01</span><span class="txt">第一条要点</span></div>
+        <div class="row-card tone-cream step"><span class="num">02</span><span class="txt">第二条要点</span></div>
+        <div class="row-card tone-sand step"><span class="num">03</span><span class="txt">第三条要点</span></div>
+      </div>
+    </section>
+
+    <!-- 页型 3 · 两栏对比 .s-cols：左白右 cream，底部收束句最后出 -->
+    <section class="slide s-cols">
+      <div class="head-row">
+        <div>
+          <div class="kicker-rule"><span class="kicker">Kicker · 小小小标题</span></div>
+          <h2 class="headline">What is <span class="hi">Something</span></h2>
+        </div>
+        <span class="page-index"><b>03</b> / 08</span>
+      </div>
+      <div class="cols">
+        <div class="card col-card step">
+          <span class="pill line">它不是：</span>
+          <div class="items">
+            <div><span class="x-mark">✕</span>误区一</div>
+            <div><span class="x-mark">✕</span>误区二</div>
+          </div>
+        </div>
+        <div class="card tone-cream col-card step">
+          <span class="pill rose">它是：</span>
+          <div class="items">
+            <div><span class="check-mark">✓</span>正解一</div>
+            <div><span class="check-mark">✓</span>正解二</div>
+          </div>
+        </div>
+      </div>
+      <p class="punchline step">收束句：<span class="hi">关键词</span>放这里</p>
+    </section>
+
+    <!-- 页型 4 · 网格卡 .s-grid：grid6 > flow-card × 6，底色循环 白→cream→sand -->
+    <section class="slide s-grid">
+      <div class="head-row">
+        <div>
+          <div class="kicker-rule"><span class="kicker">Kicker · 小小小标题</span></div>
+          <h2 class="headline">流程 / 要点<span class="hi">六宫格</span></h2>
+        </div>
+        <span class="page-index"><b>04</b> / 08</span>
+      </div>
+      <div class="grid6">
+        <div class="card flow-card step"><span class="fnum">01</span><div><div class="ftitle">步骤一</div><div class="fnote">一句话注释</div></div></div>
+        <div class="card tone-cream flow-card step"><span class="fnum">02</span><div><div class="ftitle">步骤二</div><div class="fnote">一句话注释</div></div></div>
+        <div class="card tone-sand flow-card step"><span class="fnum">03</span><div><div class="ftitle">步骤三</div><div class="fnote">一句话注释</div></div></div>
+        <div class="card flow-card step"><span class="fnum">04</span><div><div class="ftitle">步骤四</div><div class="fnote">一句话注释</div></div></div>
+        <div class="card tone-cream flow-card step"><span class="fnum">05</span><div><div class="ftitle">步骤五</div><div class="fnote">一句话注释</div></div></div>
+        <div class="card tone-sand flow-card step"><span class="fnum">06</span><div><div class="ftitle">步骤六</div><div class="fnote">一句话注释</div></div></div>
+      </div>
+    </section>
+
+    <!-- 页型 5 · 单张大卡 .s-big：big-word + 左右两栏问答/长文 -->
+    <section class="slide s-big">
+      <div class="head-row">
+        <div>
+          <div class="kicker-rule"><span class="kicker">Kicker · 小小小标题</span></div>
+          <h2 class="headline">一个<span class="hi">大标题</span></h2>
+        </div>
+        <span class="page-index"><b>05</b> / 08</span>
+      </div>
+      <div class="card big-card step">
+        <div class="big-head">
+          <span class="big-word">PRD</span>
+          <span class="big-sub">副标题：<u>下划线短语</u></span>
+        </div>
+        <div class="two-cols">
+          <div class="col-a">
+            <div class="faq"><div class="q">问题一：</div><div class="a">回答文字。</div></div>
+            <div class="faq"><div class="q">问题二：</div><div class="a">回答文字。</div></div>
+          </div>
+          <div class="col-b">
+            <div class="faq"><div class="q">问题三：</div><div class="a">回答文字。</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 页型 6 · 高亮卡列 .s-hi：grid3 > hi-card × 3，顶对齐，底色循环 白→cream→sand -->
+    <section class="slide s-hi">
+      <div class="head-row">
+        <div>
+          <div class="kicker-rule"><span class="kicker">Kicker · 小小小标题</span></div>
+          <h2 class="headline">记住这<span class="hi">三件事</span></h2>
+        </div>
+        <span class="page-index"><b>06</b> / 08</span>
+      </div>
+      <div class="grid3">
+        <div class="card hi-card step"><span class="hnum">1.</span><div class="htxt">要点一</div></div>
+        <div class="card tone-cream hi-card step"><span class="hnum">2.</span><div class="htxt">要点二</div></div>
+        <div class="card tone-sand hi-card step"><span class="hnum">3.</span><div class="htxt">要点三</div></div>
+      </div>
+    </section>
+
+    <!-- 页型 7 · 大字转场 .s-break：纯色大字 + 副句 -->
+    <section class="slide s-break">
+      <span class="kicker">Section · 环节说明</span>
+      <div class="display step">大字转场</div>
+      <div class="sub step">一句副标题</div>
+    </section>
+
+    <!-- 页型 8 · 结尾 .s-end：超大字 -->
+    <section class="slide s-end">
+      <span class="kicker">结尾小字</span>
+      <div class="display">Q&amp;A</div>
+    </section>
+
+  </div>
+</div>
+
+<div class="progress"><i id="bar"></i></div>
+<div class="hud" id="hud">1 / 8</div>
+
+<script>
+/* 翻页 + 逐条揭示 + 等比缩放。固定骨架，不要改。 */
+(function () {
+  var stage   = document.getElementById("stage");
+  var slides  = Array.prototype.slice.call(document.querySelectorAll(".slide"));
+  var bar     = document.getElementById("bar");
+  var hud     = document.getElementById("hud");
+  var cur     = 0;
+
+  function fit() {
+    var s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    stage.style.transform = "translate(-50%, -50%) scale(" + s + ")";
+  }
+  window.addEventListener("resize", fit);
+  fit();
+
+  function allSteps(sl)  { return sl ? Array.prototype.slice.call(sl.querySelectorAll(".step")) : []; }
+  function shownSteps(sl){ return allSteps(sl).filter(function (el) { return el.classList.contains("in"); }); }
+
+  function update() {
+    slides.forEach(function (sl, i) { sl.classList.toggle("active", i === cur); });
+    bar.style.width = ((cur + 1) / slides.length * 100) + "%";
+    hud.textContent = (cur + 1) + " / " + slides.length;
+  }
+
+  function next() {
+    var pending = allSteps(slides[cur]).filter(function (el) { return !el.classList.contains("in"); });
+    if (pending.length) { pending[0].classList.add("in"); return; }
+    if (cur < slides.length - 1) { cur++; update(); }
+  }
+  function prev() {
+    var shown = shownSteps(slides[cur]);
+    if (shown.length) { shown[shown.length - 1].classList.remove("in"); return; }
+    if (cur > 0) { cur--; allSteps(slides[cur]).forEach(function (el) { el.classList.add("in"); }); update(); }
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (["ArrowRight", "ArrowDown", " ", "PageDown", "Enter"].indexOf(e.key) > -1) { e.preventDefault(); next(); }
+    else if (["ArrowLeft", "ArrowUp", "Backspace", "PageUp"].indexOf(e.key) > -1) { e.preventDefault(); prev(); }
+    else if (e.key === "Home") { cur = 0; slides.forEach(function (sl) { allSteps(sl).forEach(function (el) { el.classList.remove("in"); }); }); update(); }
+  });
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("a")) return;
+    (e.clientX > window.innerWidth / 2) ? next() : prev();
+  });
+
+  update();
+})();
+</script>
+</body>
+</html>

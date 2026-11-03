@@ -1,0 +1,250 @@
+/* ============================================================================
+ * MUTED EARTHY DECK · HTML PPT 设计系统  v1
+ * 深紫灰画布 #6d6875 + 白色大标题（#e5989b 高亮词）+ 细框 block（白 / #f2e9e4 / #ebd4cb）
+ * ----------------------------------------------------------------------------
+ * 用法：<link> 或整段复制本文件，然后：
+ *   舞台    .viewport > .stage > section.slide × N（1920×1080 定尺，自动等比缩放）
+ *   页头    .head-row > .kicker-rule(.kicker) + .headline(.hi) + .page-index
+ *   页型    .s-cover / .s-list / .s-cols / .s-grid / .s-big / .s-hi / .s-break / .s-end
+ *   block   .card（+.tone-cream / .tone-sand）、.row-card、.pill、.faq
+ *   逐条揭示  .step（JS 点亮 .in，全部出完才翻页）
+ *   HUD     .progress > i + .hud
+ * ----------------------------------------------------------------------------
+ * <head> 里先引字体：
+ *   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ *   <link href="https://cdn.jsdelivr.net/npm/harmonyos-sans-sc-webfont-splitted@1.1.0/dist/index.css" rel="stylesheet">
+ *   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+ * ========================================================================== */
+
+:root {
+  /* ---------- 画布与文字 ---------- */
+  --canvas:  #6D6875;   /* Stormy Plum · 所有页面背景，每一页都是它，不许换 */
+  --text:    #FFFFFF;   /* 画布上的正文与大标题 */
+  --hi:      #E5989B;   /* Cotton Candy · 大标题里的高亮词，别无他用 */
+  --sub:     #B5838D;   /* Dusty Rose · 序号 / 编号 / 块内小标题 */
+  --kicker-c:#F5CAC3;   /* 大标题顶上的 kicker 小小小标题 */
+
+  /* ---------- block 三色（只允许这三种底色） ---------- */
+  --block:       #FFFFFF;
+  --block-cream: #F2E9E4;
+  --block-sand:  #EBD4CB;
+  --ink:         #6D6875;   /* block 内的深色文字 + 所有细边框 */
+  --muted-on-block: rgba(109,104,117,.72);
+
+  /* ---------- 边框 / 形状 ---------- */
+  --bw:       2px;      /* 所有细边框，全系统统一 */
+  --bw-thin:  2px;
+  --radius:   4px;      /* 唯一圆角值 */
+  --line:     rgba(109,104,117,.25);  /* block 内部分隔线 */
+
+  /* ---------- 字体：中西文同族，不要中文一套拉丁一套 ---------- */
+  --font-display: "HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --font-body:    "HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --font-mono:    "IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+
+/* ============ 舞台：1920×1080 定尺，等比缩放居中 ============ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; }
+body { background: #3a363f; font-family: var(--font-body); color: var(--text); }
+.viewport { position: fixed; inset: 0; overflow: hidden; }
+.stage {
+  position: absolute; left: 50%; top: 50%;
+  width: 1920px; height: 1080px;
+  transform: translate(-50%, -50%);
+  transform-origin: center center;
+  background: var(--canvas);
+  overflow: hidden;
+}
+
+/* ============ 幻灯片通用 ============
+   网格 + 一层极淡 wash：全 deck 唯一允许渐变的地方。
+   文字、卡片、按钮上一律禁止渐变。 */
+.slide {
+  position: absolute; inset: 0;
+  padding: 100px;     /* 四边统一 100px 留白，不许偷减任何一边 */
+  display: flex; flex-direction: column;
+  opacity: 0; visibility: hidden;
+  transition: opacity .45s ease;
+  background-color: var(--canvas);
+  background-image:
+    linear-gradient(90deg, rgba(255,255,255,.07) 1px, transparent 1px),
+    linear-gradient( 0deg, rgba(255,255,255,.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(229,152,155,.10), transparent 42%, rgba(255,180,162,.08));
+  background-size: 32px 32px, 32px 32px, 100% 100%;
+  color: var(--text);
+}
+.slide.active { opacity: 1; visibility: visible; z-index: 1; }
+
+/* ============ 页头 ============ */
+/* kicker：Plex Mono 等宽小字 + 标尺线 */
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 22px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--kicker-c);
+}
+.kicker-rule { display: flex; align-items: center; gap: 20px; }
+.kicker-rule::after { content: ""; width: 72px; height: 2px; background: var(--hi); }
+
+.head-row { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 54px; }
+.headline {
+  font-family: var(--font-display);
+  font-size: 96px; font-weight: 900;
+  line-height: 1.15; letter-spacing: -0.01em;
+  margin-top: 24px;
+  color: var(--text);
+}
+.hi { color: var(--hi); }   /* 大标题里的高亮词，一条标题最多一个 */
+.page-index {
+  font-family: var(--font-mono);
+  font-size: 22px; font-weight: 500; letter-spacing: .1em;
+  color: var(--sub); white-space: nowrap; padding-bottom: 14px;
+}
+.page-index b { color: var(--text); font-weight: 700; }
+
+/* ============ block：白 / cream / sand 三种底色 ============
+   配色规则：同页并列 block 要么全白，要么按 白 → cream → sand 循环交替；
+   禁止整页白色里只给一个 block 上色。 */
+.card {
+  background: var(--block);
+  color: var(--ink);        /* 必须显式写，块内文字一律深色 */
+  border: var(--bw) solid var(--ink);
+  border-radius: var(--radius);
+}
+.card.tone-cream, .row-card.tone-cream { background: var(--block-cream); }
+.card.tone-sand,  .row-card.tone-sand  { background: var(--block-sand); }
+
+/* 标签 pill */
+.pill {
+  display: inline-block;
+  font-size: 24px; font-weight: 700;
+  padding: 10px 24px;
+  border-radius: var(--radius);
+  border: var(--bw-thin) solid var(--ink);
+  background: var(--block); color: var(--ink);
+}
+.pill.rose { background: var(--sub); border-color: var(--sub); color: #fff; }
+.pill.line { color: var(--sub); border-color: var(--sub); }
+
+/* 逐条揭示（JS 逐个点亮 .in） */
+.step { opacity: 0; transform: translateY(24px); transition: opacity .55s cubic-bezier(.16,1,.3,1), transform .55s cubic-bezier(.16,1,.3,1); }
+.step.in { opacity: 1; transform: none; }
+
+/* ============ 页型 1 · 封面 .s-cover ============ */
+.s-cover { align-items: center; justify-content: center; text-align: center; }
+.s-cover .tag {
+  display: inline-block;
+  font-size: 24px; font-weight: 700;
+  border: var(--bw-thin) solid rgba(255,255,255,.5);
+  border-radius: var(--radius);
+  padding: 14px 30px;
+  margin-bottom: 72px;
+  background: transparent;
+  color: var(--text);
+}
+.s-cover .display {
+  font-family: var(--font-display);
+  font-size: 150px; font-weight: 900;
+  line-height: 1.12; letter-spacing: -0.015em;
+  color: var(--text);
+}
+.s-cover .display .line { display: block; white-space: nowrap; }
+.s-cover .display em { font-style: normal; color: var(--hi); }
+.s-cover .meta {
+  margin-top: 80px;
+  font-family: var(--font-mono);
+  font-size: 20px; font-weight: 500; letter-spacing: .18em;
+  color: rgba(255,255,255,.5); text-transform: uppercase;
+}
+
+/* ============ 页型 2 · 编号清单 .s-list ============ */
+.s-list .rows { display: flex; flex-direction: column; gap: 36px; flex: 1; justify-content: center; }
+.row-card {
+  display: flex; align-items: center; gap: 44px;
+  background: var(--block); color: var(--ink);
+  border: var(--bw) solid var(--ink); border-radius: var(--radius);
+  padding: 46px 56px;
+}
+.row-card .num {
+  font-family: var(--font-mono);
+  font-size: 56px; font-weight: 700; line-height: 1;
+  color: var(--sub);
+}
+.row-card .txt { font-size: 46px; font-weight: 900; line-height: 1.3; }
+
+/* ============ 页型 3 · 两栏对比 .s-cols ============ */
+.s-cols .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; flex: 1; }
+.col-card { padding: 48px 52px; display: flex; flex-direction: column; gap: 36px; }
+.col-card .pill { align-self: flex-start; }
+.col-card .items { display: flex; flex-direction: column; gap: 24px; font-size: 31px; line-height: 1.5; font-weight: 500; }
+.x-mark { color: var(--hi); font-weight: 900; margin-right: 16px; }
+.check-mark { color: var(--sub); font-weight: 900; margin-right: 16px; }
+.punchline {
+  margin-top: 50px; text-align: center;
+  font-family: var(--font-display);
+  font-size: 56px; font-weight: 900; letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+/* ============ 页型 4 · 网格卡 .s-grid（3×2 六宫格） ============ */
+.s-grid .grid6 { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr; gap: 28px; }
+.flow-card { display: flex; flex-direction: column; justify-content: space-between; padding: 36px 40px; }
+.flow-card .fnum { font-family: var(--font-mono); font-size: 22px; font-weight: 700; letter-spacing: .1em; color: var(--sub); }
+.flow-card .ftitle { font-family: var(--font-display); font-size: 46px; font-weight: 900; margin-bottom: 12px; }
+.flow-card .fnote { font-size: 25px; color: var(--muted-on-block); line-height: 1.45; }
+
+/* ============ 页型 5 · 单张大卡 .s-big（PRD / 长文） ============ */
+.s-big .big-card { flex: 1; padding: 52px 64px; display: flex; flex-direction: column; }
+.s-big .big-head { display: flex; align-items: baseline; gap: 40px; padding-bottom: 32px; border-bottom: var(--bw) solid var(--ink); margin-bottom: 36px; }
+.s-big .big-word { font-family: var(--font-display); font-size: 92px; font-weight: 900; letter-spacing: -0.01em; line-height: 1; color: var(--sub); }
+.s-big .big-sub { font-size: 30px; color: var(--muted-on-block); }
+.s-big .big-sub u { text-decoration: underline dashed var(--sub) 2px; text-underline-offset: 8px; }
+.s-big .two-cols { display: grid; grid-template-columns: 1fr 1fr; flex: 1; }
+.s-big .col-a { padding-right: 56px; }
+.s-big .col-b { padding-left: 56px; border-left: var(--bw-thin) solid var(--line); }
+.faq { margin-bottom: 26px; }
+.faq:last-child { margin-bottom: 0; }
+.faq .q { font-size: 28px; font-weight: 900; margin-bottom: 8px; }
+.faq .a { font-size: 25px; line-height: 1.55; color: var(--muted-on-block); }
+
+/* ============ 页型 6 · 高亮卡列 .s-hi（三要素等） ============ */
+/* 同列卡片内容一律顶对齐：不垂直居中，否则文字行数不一会把序号顶得高低不齐 */
+.s-hi .grid3 { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; }
+.hi-card { display: flex; flex-direction: column; justify-content: flex-start; gap: 28px; padding: 56px 48px; }
+.hi-card .hnum {
+  font-family: var(--font-display);
+  font-size: 120px; font-weight: 900; line-height: 1;
+  color: var(--sub);
+}
+.hi-card .htxt { font-family: var(--font-display); font-size: 48px; font-weight: 900; line-height: 1.35; }
+
+/* ============ 页型 7 · 大字转场 .s-break ============ */
+.s-break { align-items: center; justify-content: center; text-align: center; }
+.s-break .display {
+  font-family: var(--font-display);
+  font-size: 190px; font-weight: 900; line-height: 1.1; letter-spacing: -0.015em;
+  color: var(--text);
+  margin: 44px 0 48px;
+}
+.s-break .sub { font-size: 32px; font-weight: 500; color: rgba(255,255,255,.7); }
+
+/* ============ 页型 8 · 结尾大字 .s-end ============ */
+.s-end { align-items: center; justify-content: center; text-align: center; }
+.s-end .display {
+  font-family: var(--font-display);
+  font-size: 250px; font-weight: 900; line-height: 1; letter-spacing: -0.02em;
+  color: var(--hi);
+  margin-top: 36px;
+}
+
+/* ============ HUD：进度条 + 页码 ============ */
+.hud {
+  position: fixed; right: 30px; bottom: 26px; z-index: 50;
+  font-family: var(--font-mono);
+  font-size: 15px; font-weight: 500; letter-spacing: .12em;
+  color: rgba(255,255,255,.6);
+  user-select: none;
+}
+.progress { position: fixed; left: 0; top: 0; right: 0; height: 4px; z-index: 60; background: rgba(255,255,255,.12); }
+.progress i { display: block; height: 100%; background: var(--hi); transition: width .4s ease; }
